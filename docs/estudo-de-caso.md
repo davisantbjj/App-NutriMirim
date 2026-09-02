@@ -37,3 +37,23 @@ O NutriMirim automatiza a avaliação nutricional infantil transformando o dispo
 - **Alerta automático de classificação:** Atende à necessidade do ACS de saber instantaneamente o que fazer (ex: "Abaixo do Z-Score -2, verificar suplementação") usando um sistema de cores.  
 
 - **Rasterização simples de gráficos:** Atende à necessidade de rodar sem travamentos em celulares com GPUs fracas.
+
+## 1.7. Restrições e condições 
+
+**Interações:** A funcionalidade principal de avaliação deve ser concluída em, no máximo, 3 toques.  
+
+**Telas:** O protótipo é restrito a um máximo de 4 telas principais.  
+
+**Hardware:** O sistema deve performar bem em aparelhos com apenas 2GB de RAM.  
+
+**Armazenamento e Rede:** As tabelas da OMS devem ficar armazenadas localmente em assets (offline), proibindo o uso de banco de dados em nuvem para o cálculo.  
+
+**Privacidade:** Por lidar com menores de idade hiper vulneráveis, é obrigatória a inclusão do campo "Responsável Legal" e o sistema deve permitir a anonimização total dos dados para fins estatísticos públicos.  
+
+## 1.8. Pontos de atenção 
+
+**Funcionamento 100% Offline e Leveza:** É o fator técnico mais crítico, pois campanhas em comunidades carentes frequentemente não possuem rede móvel, e os aparelhos dos agentes públicos costumam ser de entrada.  
+
+**Duplicidade de Experiência (ACS x Médicos):** O sucesso do app depende de equilibrar uma interface extremamente simples e colorida para os agentes em campo, mantendo a profundidade dos gráficos técnicos exigidos pelos pediatras.  
+
+**Privacidade e Anonimização:** Como o aplicativo coleta dados de saúde de crianças em situação de vulnerabilidade, qualquer falha no isolamento público do nome do paciente pode gerar graves problemas legais e éticos. 
