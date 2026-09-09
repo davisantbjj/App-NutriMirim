@@ -118,14 +118,16 @@ Mariana Costa, 34 anos, é nutricionista e trabalha no acompanhamento de crianç
 
 É uma usuária técnica e contínua. Para Mariana, o NutriMirim é uma ferramenta de apoio à avaliação nutricional, oferecendo não apenas uma classificação, mas também os dados e gráficos necessários para compreender e acompanhar o desenvolvimento da criança.
  
-## Persona prioritária — Mariana Costa
+## Persona prioritária — Ana Paula
 
-Mariana, nutricionista, deve ser considerada a persona prioritária porque o estudo de caso indica que pediatras, nutricionistas e médicos especialistas possuem engajamento técnico contínuo, com uso diário em UBSs e consultórios, enquanto os ACS apresentam um engajamento operacional e esporádico, principalmente em campanhas de pesagem.
+Ana Paula foi escolhida como persona prioritária porque representa o público diretamente relacionado à missão central do NutriMirim: apoiar o combate à desnutrição infantil em comunidades carentes. O aplicativo foi pensado para auxiliar agentes de saúde na aferição e classificação do estado nutricional das crianças. 
 
-Além disso, a persona técnica utiliza uma parcela maior das funcionalidades do produto: precisa consultar o Z-Score exato, o percentil e o gráfico de crescimento, enquanto o ACS necessita principalmente de uma resposta rápida e clara sobre a situação nutricional da criança.
+Embora nutricionistas, pediatras e médicos especialistas utilizem o aplicativo de forma técnica e contínua, o ACS possui uma necessidade mais crítica de simplicidade, rapidez e clareza. Durante campanhas de pesagem e atendimentos em campo, ele precisa obter uma resposta imediata sobre a situação nutricional da criança, sem depender de cálculos manuais ou da interpretação complexa das curvas de crescimento. 
 
-Portanto, priorizar a nutricionista permite projetar uma experiência que contemple as necessidades mais complexas do público técnico, sem prejudicar a experiência dos ACS. A interface ainda pode manter a simplicidade necessária para que o agente consiga realizar a avaliação em poucas interações, uma exigência central do projeto.
+Por isso, a experiência do ACS deve orientar a prioridade do projeto, garantindo que a principal tarefa — inserir os dados antropométricos e descobrir rapidamente a classificação nutricional — possa ser realizada de forma simples, objetiva e confiável. 
 
-**Prioridade:** Mariana Costa — Nutricionista
+A persona da nutricionista permanece como persona secundária, sendo importante para as funcionalidades de análise detalhada, como visualização do Z-Score, percentil e gráfico de crescimento.
 
-**Persona secundária:** Ana Paula — Agente Comunitária de Saúde
+**Prioridade:** Ana Paula — Agente Comunitária de Saúde
+
+**Persona secundária:** Mariana Costa — Nutricionista
