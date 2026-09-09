@@ -1,3 +1,5 @@
+#  Estudo de caso 
+
 ## 1.1. Problema
 **Problema:** O aplicativo visa apoiar o combate à desnutrição infantil em comunidades carentes.
 **Relevância:** Substitui os defasados cadernos de curvas de crescimento em papel pela automatização do cálculo antropométrico.
