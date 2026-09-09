@@ -45,7 +45,16 @@ Profissionais responsáveis pela conduta terapêutica, prescrição de suplement
 
 ---
 
-## 3
+## 3. Dados que Podem Influenciar o Aplicativo
+
+| Dado / Restrição Identificada | Origem Técnica / Normativa | Influência Direta no NutriMirim |
+| :--- | :--- | :--- |
+| *Padrões de Crescimento da OMS* | Organização Mundial da Saúde (OMS, 2006) | O motor do app deve embutir os parâmetros LMS para cálculo vetorial exato dos desvios padrão de 0 a 5 anos. |
+| *Indicadores Antropométricos* | OMS e Ministério da Saúde (SISVAN, 2011) | Suporte obrigatório às métricas P/I, E/I, P/E e IMC/I com os pontos de corte oficiais do SUS. |
+| *Subnotificação em Papel (32,9%)* | Estudo Epidemiologia e Serviços de Saúde (2024) | Automação da plotagem para viabilizar registros completos em poucos segundos durante a triagem. |
+| *Conectividade Restrita em Campo* | Realidade operacional da Atenção Primária | Arquitetura estritamente Offline-First em Dart puro, garantindo autonomia sem depender de conexões remotas. |
+| *Hardware de Baixo Custo (≤ 2GB RAM)* | Parque tecnológico de entrada em saúde pública | Renderização visual otimizada e arquitetura enxuta, evitando consumo excessivo de memória heap. |
+| *Proteção de Dados de Menores* | Art. 14 da LGPD (Lei 13.709/2018) | Coleta com ciência do responsável legal, perfis de acesso restritos e anonimização de dados estatísticos. |
 
 ---
 
@@ -78,4 +87,16 @@ Profissionais responsáveis pela conduta terapêutica, prescrição de suplement
 
 ---
 
-## 5
+## 5. Três Descobertas Importantes e Impactos no Projeto
+
+### 1. Incompletude Crônica das Curvas Manuais (32,9% de Preenchimento)
+* *Constatação:* A literatura comprova que quase 70% das curvas físicas deixam de ser plotadas devido à complexidade manual e à sobrecarga das equipes públicas.
+* *Como influencia o projeto:* O NutriMirim priorizará a automatização total do cálculo logo após a digitação básica das medidas, reduzindo a barreira temporal de minutos para segundos e garantindo completude no registro longitudinal.
+
+### 2. Necessidade de Padronização sem Substituição do Juízo Clínico
+* *Constatação:* As tabelas da OMS e normas do SISVAN exigem rigor matemático, mas a literatura reforça que a tecnologia deve servir como suporte à triagem rápida e não como diagnóstico médico automatizado.
+* *Como influencia o projeto:* A interface fornecerá alertas semafóricos claros para conduta de campo, acompanhados de ressalvas éticas e dados técnicos pormenorizados (escore Z e gráficos) para apoiar, sem substituir, a conduta dos profissionais habilitados.
+
+### 3. Exigência de Confiabilidade Offline em Dispositivos de Entrada
+* *Constatação:* As atividades de triagem em comunidades vulneráveis ocorrem sob restrições severas de conectividade e em hardware básico.
+* *Como influencia o projeto:* O NutriMirim adotará arquitetura técnica estritamente offline-first, incorporando os dados antropométricos localmente e utilizando renderização vetorial leve, assegurando estabilidade em aparelhos com até 2GB de RAM.
