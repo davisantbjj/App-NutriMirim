@@ -64,6 +64,7 @@
 
 ---
 
+
 ## 3. PediTools - Calculadora Pediátrica Web
 
 É uma ferramenta de cálculo clínico rápido focada no ponto de atendimento, permitindo o cálculo instantâneo de z-scores da OMS e CDC a partir da idade gestacional, cronológica, peso, estatura e perímetro cefálico.
@@ -123,4 +124,4 @@ Telas limpas, botões grandes para digitação ágil em ambientes clínicos movi
 
 ## Conclusão
 
-As ferramentas analisadas reforçam a importância de combinar rigor científico com uma experiência de uso eficiente. O projeto pode se diferenciar ao unir confiabilidade nutricional com uma interface simples, rápida e adaptada ao contexto clínico e comunitário..
+As ferramentas analisadas reforçam a importância de combinar rigor científico com uma experiência de uso eficiente. O projeto pode se diferenciar ao unir confiabilidade nutricional com uma interface simples, rápida e adaptada ao contexto clínico e comunitário.
