@@ -36,3 +36,5 @@ O NutriMirim é um projeto voltado para a vigilância nutricional infantil, dese
 | Larissa Barbosa dos Santos | Benchmark e Apresentação |
 | Lorena Reis Santos | Benchmark |
 | Talita Santos das Virgens | Personas e atualizar o README.md |
+
+link apresentação https://www.canva.com/design/DAHUvhW46zc/MdxAsr5MLhGfH_etU4LLzg/edit
