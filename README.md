@@ -18,6 +18,15 @@ O NutriMirim é um projeto voltado para a vigilância nutricional infantil, dese
 
 ## Responsabilidade de cada integrante nesta atividade - 09/09/2026
 
+## ATIVIDADE 01 — ANÁLISE DO ESTUDO DE CASO
+
+| Integrante | Responsabilidade |
+| --- | --- |
+| Davi Santana Lóz | Problema; públicos e usuários |
+| Larissa Barbosa dos Santos | Personalidade, identidade e experiência; funcionalidades e características já definidas |
+| Lorena Reis Santos | Contexto de uso; objetivo e proposta de valor |
+| Talita Santos das Virgens | Restrições e condições; pontos de atenção |
+
 ## ATIVIDADE 02 — PESQUISA, BENCHMARK E PERSONAS
 
 | Integrante | Responsabilidade |
