@@ -123,4 +123,4 @@ Telas limpas, botões grandes para digitação ágil em ambientes clínicos movi
 
 ## Conclusão
 
-As ferramentas analisadas reforçam a importância de combinar rigor científico com uma experiência de uso eficiente. O projeto pode se diferenciar ao unir confiabilidade nutricional com uma interface simples, rápida e adaptada ao contexto clínico e comunitário.
+As ferramentas analisadas reforçam a importância de combinar rigor científico com uma experiência de uso eficiente. O projeto pode se diferenciar ao unir confiabilidade nutricional com uma interface simples, rápida e adaptada ao contexto clínico e comunitário..
