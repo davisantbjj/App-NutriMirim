@@ -58,4 +58,4 @@ O NutriMirim automatiza a avaliação nutricional infantil transformando o dispo
 
 - **Duplicidade de Experiência (ACS x Médicos):** O sucesso do app depende de equilibrar uma interface extremamente simples e colorida para os agentes em campo, mantendo a profundidade dos gráficos técnicos exigidos pelos pediatras.  
 
-- **Privacidade e Anonimização:** Como o aplicativo coleta dados de saúde de crianças em situação de vulnerabilidade, qualquer falha no isolamento público do nome do paciente pode gerar graves problemas legais e éticos. 
+- **Privacidade e Anonimização:** Como o aplicativo coleta dados de saúde de crianças em situação de vulnerabilidade, qualquer falha no isolamento público do nome do paciente pode gerar graves problemas legais e éticos.. 
