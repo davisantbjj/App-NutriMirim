@@ -144,3 +144,57 @@ A operação de exclusão (D) não se aplica às Avaliações Antropométricas, 
 * **R (Consultar):** Consultar os dados do responsável autorizado.
 * **U (Atualizar):** Permitir a atualização dos dados de contato e identificação do responsável.
 * **D (Excluir):** Permitir a remoção do vínculo ou exclusão dos dados de forma controlada, quando aplicável.
+
+## 2.5. Priorização
+
+A classificação das funcionalidades do NutriMirim foi definida a partir da análise da persona prioritária (Ana Paula, Agente Comunitária de Saúde), das condições de infraestrutura levantadas na pesquisa (comunidades carentes, dispositivos de baixo custo e ausência frequente de sinal de internet) e das necessidades clínicas da persona secundária (Mariana Costa, Nutricionista).
+
+---
+
+### Essenciais
+*Indispensáveis para a proposta central do projeto: viabilizar a triagem antropométrica rápida, precisa, sem o uso de papel e com funcionamento offline em áreas vulneráveis.*
+
+* **Cadastro Básico da Criança (Funcionalidade 2.1 / RF01):**
+  * *Justificativa:* Coletar dados cadastrais mínimos (nome, sexo, data de nascimento e responsável legal) é a base de entrada necessária para calcular a idade exata e alimentar o algoritmo biométrico, além de assegurar o cumprimento legal da LGPD para menores de idade.
+* **Registro de Medidas Antropométricas (Funcionalidade 2.2 / RF02):**
+  * *Justificativa:* Permite a inserção com validação de consistência dos dados de peso (kg), estatura/comprimento (cm) e data da avaliação, fornecendo as variáveis indispensáveis para a análise do crescimento.
+* **Cálculo Automático de Z-Score (Funcionalidade 2.3 / RF03):**
+  * *Justificativa:* Constitui o núcleo algorítmico da aplicação. Automatiza o cálculo dos indicadores antropométricos (P/I, E/I, P/E e IMC/I) conforme os padrões oficiais da OMS, eliminando o erro humano decorrente de tabelas manuais.
+* **Classificação Visual Semafórica (Funcionalidade 2.4 / RF04):**
+  * *Justificativa:* Atende diretamente à dor mais urgente do ACS em campo, traduzindo valores matemáticos complexos em um diagnóstico visual intuitivo (verde para eutrofia, amarelo para risco e vermelho para desnutrição/obesidade grave).
+* **Operação Offline-First Local (Funcionalidade 2.7 / RF07):**
+  * *Justificativa:* É a principal restrição técnica do projeto. Como mutirões e campanhas frequentemente ocorrem em locais sem sinal de operadora móvel ou Wi-Fi, o armazenamento e os cálculos matemáticos devem operar 100% de forma local.
+* **Fluxo de Atendimento em Campo Simplificado (Funcionalidade 2.8 / RF09):**
+  * *Justificativa:* Estrutura uma navegação em formato assistido (wizard) de no máximo 3 etapas, viabilizando triagens rápidas sob filas intensas e alta demanda de atendimento.
+
+---
+
+### Importantes
+*Agregam valor significativo ao acompanhamento longitudinal e ao suporte clínico especializado, mas não inviabilizam a realização da triagem imediata inicial.*
+
+* **Histórico Longitudinal de Acompanhamento (Funcionalidade 2.5 / RF05):**
+  * *Justificativa:* Permite monitorar a evolução pondero-estatural da criança ao longo das visitas, mitigando os problemas de subnotificação e perda física da Caderneta de Saúde em papel.
+* **Plotagem em Curva de Crescimento da OMS (Funcionalidade 2.6 / RF06):**
+  * *Justificativa:* Atende às necessidades técnicas dos nutricionistas e pediatras para análise visual de tendências clínicas, utilizando renderização vetorial leve para evitar travamentos em celulares com 2GB de RAM.
+* **Exportação de Relatório Resumido (Funcionalidade 2.11 / RF10):**
+  * *Justificativa:* Gera comprovantes e relatórios em PDF/texto para compartilhamento com os responsáveis ou equipe multidisciplinar, servindo como apoio documental e não operacional.
+* **Alerta de Encaminhamento Clínico e Micro-condutas (RF12 / RF13):**
+  * *Justificativa:* Fornece orientações padronizadas pelo Ministério da Saúde e alertas de suporte à decisão clínica imediata quando detectadas situações de desnutrição aguda ou escore-Z crítico (< -2 DP).
+* **Busca Local de Cadastros (RF11):**
+  * *Justificativa:* Facilita o resgate rápido de fichas de crianças previamente cadastradas durante retornos e mutirões sucessivos, evitando duplicidade de dados no banco local.
+* **Sincronização em Segundo Plano e Status de Envio (Funcionalidade 2.7 / RF08 / RF16):**
+  * *Justificativa:* Garante o envio seguro dos dados acumulados em campo para os sistemas centrais assim que houver rede disponível, indicando visualmente ao usuário a situação de cada registro.
+
+---
+
+### Secundárias
+*Funcionalidades complementares de automação avançada ou conveniência administrativa que podem ser implementadas em versões futuras sem comprometer o fluxo operacional.*
+
+* **Leitura de Cartão SUS via Câmera/OCR (RF15):**
+  * *Justificativa:* Recurso de conveniência para preenchimento ágil do número do CNS, mas que exige processamento óptico adicional e depende da qualidade de câmeras de smartphones básicos.
+* **Consolidado de Atendimentos do Turno (RF19) e Vinculação de Unidade/Campanha (RF18):**
+  * *Justificativa:* Ferramentas administrativas voltadas ao fechamento de metas e relatórios diários de produtividade do ACS no território.
+* **Sugestão Automática de Retorno por Risco (RF17):**
+  * *Justificativa:* Auxílio de agendamento que calcula o intervalo recomendado para a próxima pesagem, tarefa que pode ser definida de forma direta pelo próprio profissional de saúde.
+* **Revisão/Exclusão de Medição em até 15 Minutos (RF14):**
+  * *Justificativa:* Mecanismo de tolerância a erros pontuais de digitação recente que pode ser contornado pela validação rigorosa dos limites antes da confirmação do salvamento.
