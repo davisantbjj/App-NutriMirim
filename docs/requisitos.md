@@ -96,7 +96,7 @@ Com base na análise do estudo de caso, pesquisa, benchmark e personas, o app ir
 
 ---
 
-## 2.2. Requisitos Funcionais
+## 3.1. Requisitos Funcionais
 
 ### RF01 a RF19
 
@@ -113,14 +113,14 @@ Com base na análise do estudo de caso, pesquisa, benchmark e personas, o app ir
 11. **RF11 - Busca de Cadastros:** O sistema deve permitir a busca rápida de crianças cadastradas por nome parcial ou CPF/identificador do responsável em base local.
 12. **RF12 - Alerta de Encaminhamento Clínico:** O sistema deve exibir modal de alerta prioritário com diretriz de encaminhamento médico imediato ao detectar z-scores críticos (vermelho severo).
 13. **RF13 - Micro-condutas por Faixa de Risco:** O sistema deve apresentar orientações práticas padronizadas (ex: reforço de aleitamento materno, marcos alimentares) vinculadas à cor do semafórico.
-14. **RF14 - Revisão/Exclusão de Medição Recente:** O sistema deve permitir a correção ou exclusão de um lançamento antropométrico incorreto em até 15 minutos após o registro em campo.
+14. **RF14 - Revisão de Medição Recente:** O sistema deve permitir a correção de um lançamento antropométrico incorreto em até 15 minutos após o registro em campo.
 15. **RF15 - Leitura de CNS (Cartão SUS) via Câmera:** O sistema deve capturar o número do Cartão Nacional de Saúde por OCR/QR Code para preenchimento ágil do identificador do usuário.
 16. **RF16 - Indicador de Status de Sincronização:** O sistema deve sinalizar visualmente no histórico quais registros locais estão pendentes de envio ao servidor central.
 17. **RF17 - Sugestão de Retorno por Risco:** O sistema deve calcular e sugerir a data ideal de reavaliação com base na gravidade (ex: 30 dias para alto risco, 180 dias para escore normal).
 18. **RF18 - Vinculação de Unidade/Campanha:** O sistema deve permitir associar o lote de atendimentos a uma UBS específica ou código de microárea/campanha do ACS.
 19. **RF19 - Consolidado de Atendimento do Turno:** O sistema deve gerar um relatório resumido agregando quantitativos de triagem do dia (total avaliado, distribuído por cores do semafórico) para o ACS.
 
-## 2.3. Requisitos Não Funcionais
+## 3.2. Requisitos Não Funcionais
 
 ### RNF01 - Desempenho
 
@@ -175,16 +175,16 @@ O relatório exportado deve seguir um formato compatível com sistemas oficiais 
 A atualização das tabelas de referência de crescimento da OMS deve ser possível sem exigir reinstalação do aplicativo nem perda do histórico de avaliações já salvas no dispositivo.
 
 
-## 2.4. CRUD
+## 4. CRUD
 O CRUD do NutriMirim foca no gerenciamento dos dados cadastrais das crianças, do responsável legal e dos registros das avaliações antropométricas.
 
-### 2.4.1. Cadastro da Criança
+### 4.1. Cadastro da Criança
 * **C (Criar):** Permitir o cadastro de uma criança com nome, data de nascimento, sexo, responsável legal e demais dados necessários.
 * **R (Consultar):** Permitir consultar os dados cadastrais da criança e seu histórico de avaliações.
 * **U (Atualizar):** Permitir corrigir ou atualizar os dados cadastrais da criança.
 * **D (Excluir):** Permitir a exclusão do cadastro de forma controlada, respeitando as normas de proteção de dados.
 
-### 2.4.2. Avaliação Antropométrica
+### 4.2. Avaliação Antropométrica
 * **C (Criar):** Registrar uma nova avaliação com peso, estatura/comprimento e data da medição.
 * **R (Consultar):** Consultar avaliações anteriores, indicadores, escore-Z, classificação e evolução da criança.
 * **U (Atualizar):** Permitir a correção de medidas apenas por um curto período logo após o registro, caso haja erro de digitação.
@@ -193,19 +193,19 @@ O CRUD do NutriMirim foca no gerenciamento dos dados cadastrais das crianças, d
 **Justificativa (Ausência da operação "D" na Avaliação):**
 A operação de exclusão (D) não se aplica às Avaliações Antropométricas, pois esses registros são utilizados para acompanhar longitudinalmente o crescimento da criança. A exclusão definitiva de uma avaliação poderia comprometer o histórico e a análise da evolução antropométrica. Em caso de erro, a correção deve ocorrer de forma controlada, preservando a integridade e a rastreabilidade dos dados.
 
-### 2.4.3. Responsável Legal
+### 4.3. Responsável Legal
 * **C (Criar):** Cadastrar o responsável legal e vinculá-lo à criança.
 * **R (Consultar):** Consultar os dados do responsável autorizado.
 * **U (Atualizar):** Permitir a atualização dos dados de contato e identificação do responsável.
 * **D (Excluir):** Permitir a remoção do vínculo ou exclusão dos dados de forma controlada, quando aplicável.
 
-## 2.5. Priorização
+## 5. Priorização
 
 A classificação das funcionalidades do NutriMirim foi definida a partir da análise da persona prioritária (Ana Paula, Agente Comunitária de Saúde), das condições de infraestrutura levantadas na pesquisa (comunidades carentes, dispositivos de baixo custo e ausência frequente de sinal de internet) e das necessidades clínicas da persona secundária (Mariana Costa, Nutricionista).
 
 ---
 
-### Essenciais
+### 5.1. Essenciais
 *Indispensáveis para a proposta central do projeto: viabilizar a triagem antropométrica rápida, precisa, sem o uso de papel e com funcionamento offline em áreas vulneráveis.*
 
 * **Cadastro Básico da Criança (Funcionalidade 2.1 / RF01):**
@@ -223,7 +223,7 @@ A classificação das funcionalidades do NutriMirim foi definida a partir da an�
 
 ---
 
-### Importantes
+### 5.2. Importantes
 *Agregam valor significativo ao acompanhamento longitudinal e ao suporte clínico especializado, mas não inviabilizam a realização da triagem imediata inicial.*
 
 * **Histórico Longitudinal de Acompanhamento (Funcionalidade 2.5 / RF05):**
@@ -241,7 +241,7 @@ A classificação das funcionalidades do NutriMirim foi definida a partir da an�
 
 ---
 
-### Secundárias
+### 5.3. Secundárias
 *Funcionalidades complementares de automação avançada ou conveniência administrativa que podem ser implementadas em versões futuras sem comprometer o fluxo operacional.*
 
 * **Leitura de Cartão SUS via Câmera/OCR (RF15):**
