@@ -122,28 +122,25 @@ Com base na análise do estudo de caso, pesquisa, benchmark e personas, o app ir
 
 
 ## 4. CRUD
-
 O CRUD do NutriMirim foca no gerenciamento dos dados cadastrais das crianças, do responsável legal e dos registros das avaliações antropométricas.
 
 ### 4.1. Cadastro da Criança
-
 * **C (Criar):** Permitir o cadastro de uma criança com nome, data de nascimento, sexo, responsável legal e demais dados necessários.
 * **R (Consultar):** Permitir consultar os dados cadastrais da criança e seu histórico de avaliações.
 * **U (Atualizar):** Permitir corrigir ou atualizar os dados cadastrais da criança.
 * **D (Excluir):** Permitir a exclusão do cadastro de forma controlada, respeitando as normas de proteção de dados.
 
 ### 4.2. Avaliação Antropométrica
-
 * **C (Criar):** Registrar uma nova avaliação com peso, estatura/comprimento e data da medição.
 * **R (Consultar):** Consultar avaliações anteriores, indicadores, escore-Z, classificação e evolução da criança.
-* **U (Atualizar):** Permitir a correção de medidas ou informações registradas incorretamente.
-* **D (Excluir):** Permitir a exclusão controlada de registros duplicados ou lançados por engano.
+* **U (Atualizar):** Permitir a correção de medidas apenas por um curto período logo após o registro, caso haja erro de digitação.
+* **D (Excluir):** **NÃO APLICÁVEL.**
+
+**Justificativa (Ausência da operação "D" na Avaliação):**
+A operação de exclusão (D) não se aplica às Avaliações Antropométricas, pois esses registros são utilizados para acompanhar longitudinalmente o crescimento da criança. A exclusão definitiva de uma avaliação poderia comprometer o histórico e a análise da evolução antropométrica. Em caso de erro, a correção deve ocorrer de forma controlada, preservando a integridade e a rastreabilidade dos dados.
 
 ### 4.3. Responsável Legal
-
 * **C (Criar):** Cadastrar o responsável legal e vinculá-lo à criança.
 * **R (Consultar):** Consultar os dados do responsável autorizado.
 * **U (Atualizar):** Permitir a atualização dos dados de contato e identificação do responsável.
 * **D (Excluir):** Permitir a remoção do vínculo ou exclusão dos dados de forma controlada, quando aplicável.
-
-**Justificativa:** O CRUD é indispensável para que o NutriMirim mantenha a persistência local (*offline-first*) dos dados e sustente o acompanhamento longitudinal do crescimento infantil. Operações sensíveis, como exclusões e edições, devem possuir controle de acesso para evitar alterações indevidas e perda acidental do histórico de avaliações.
