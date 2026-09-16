@@ -122,57 +122,19 @@ Com base na análise do estudo de caso, pesquisa, benchmark e personas, o app ir
 
 ## 3.2. Requisitos Não Funcionais
 
-### RNF01 - Desempenho
-
-O cálculo do z-score e a exibição da classificação semafórica devem ser concluídos em até 2 segundos após a inserção das medidas, mesmo em aparelhos com 2GB de RAM ou menos, perfil comum entre os celulares usados por ACS em campanha.
-
-### RNF02 - Usabilidade
-
-O fluxo completo de uma avaliação (seleção da criança, medição e resultado) deve caber em no máximo 3 telas e 5 toques, sem exigir digitação de texto longo do agente em campo.
-
-### RNF03 - Acessibilidade e legibilidade
-
-A interface deve manter contraste mínimo de 4.5:1 entre texto e fundo e permitir aumento de fonte, garantindo leitura sob luz solar direta durante visitas domiciliares.
-
-### RNF04 - Segurança e privacidade (LGPD)
-
-Os dados da criança e do responsável legal devem ficar criptografados no dispositivo, com acesso protegido por autenticação do profissional, e a exportação do relatório deve permitir ocultar identificadores diretos quando necessário.
-
-### RNF05 - Armazenamento local
-
-O banco de dados do aparelho deve suportar pelo menos 5 mil cadastros com seus históricos de medição sem queda perceptível de desempenho, considerando campanhas de grande porte.
-
-### RNF06 - Conectividade
-
-A sincronização com o servidor central deve acontecer automaticamente em segundo plano assim que houver rede disponível, priorizando o menor consumo possível de dados móveis, sem travar o uso do app nem exigir ação manual do usuário — relevante porque boa parte dos ACS utiliza planos de dados limitados em áreas rurais.
-
-### RNF07 - Compatibilidade
-
-O aplicativo deve manter a mesma usabilidade e legibilidade em diferentes tamanhos e resoluções de tela, incluindo os modelos de entrada mais comuns entre ACS e UBS, sem quebra de layout ou elementos cortados.
-
-### RNF08 - Dispositivos e sistema operacional
-
-O aplicativo deve rodar em Android a partir da versão 8.0, exigindo no mínimo 2GB de RAM, 1GB de armazenamento interno livre e câmera com autofoco, necessária para a leitura do CNS por OCR/QR Code (RF15).
-
-### RNF09 - Restrições do estudo de caso (confiabilidade)
-
-Nenhum dado inserido em campo pode se perder em caso de fechamento inesperado, queda de bateria ou reinício do aparelho, já que a intermitência de energia e conexão foi apontada como condição recorrente nas comunidades atendidas.
-
-### RNF10 - Autonomia de bateria
-
-O aplicativo deve manter baixo consumo de bateria durante o uso contínuo, permitindo que o ACS complete um turno inteiro de atendimentos em campo sem necessidade de recarga.
-
-### RNF11 - Rastreabilidade e auditoria
-
-Toda edição ou exclusão controlada de um registro (cadastro, medição ou vínculo de responsável) deve manter um log com usuário responsável, data e motivo da alteração, preservando a rastreabilidade do histórico.
-
-### RNF12 - Interoperabilidade
-
-O relatório exportado deve seguir um formato compatível com sistemas oficiais de saúde, como o e-SUS APS e o SISVAN, viabilizando integração futura com bases municipais e estaduais.
-
-### RNF13 - Manutenibilidade
-
-A atualização das tabelas de referência de crescimento da OMS deve ser possível sem exigir reinstalação do aplicativo nem perda do histórico de avaliações já salvas no dispositivo.
+1. **RNF01 - Desempenho:** O cálculo do z-score e a exibição da classificação semafórica devem ser concluídos em até 2 segundos após a inserção das medidas, mesmo em aparelhos com 2GB de RAM ou menos, perfil comum entre os celulares usados por ACS em campanha.
+2. **RNF02 - Usabilidade:** O fluxo completo de uma avaliação (seleção da criança, medição e resultado) deve caber em no máximo 3 telas e 5 toques, sem exigir digitação de texto longo do agente em campo.
+3. **RNF03 - Acessibilidade e legibilidade:** A interface deve manter contraste mínimo de 4.5:1 entre texto e fundo e permitir aumento de fonte, garantindo leitura sob luz solar direta durante visitas domiciliares.
+4. **RNF04 - Segurança e privacidade (LGPD):** Os dados da criança e do responsável legal devem ficar criptografados no dispositivo, com acesso protegido por autenticação do profissional, e a exportação do relatório deve permitir ocultar identificadores diretos quando necessário.
+5. **RNF05 - Armazenamento local:** O banco de dados do aparelho deve suportar pelo menos 5 mil cadastros com seus históricos de medição sem queda perceptível de desempenho, considerando campanhas de grande porte.
+6. **RNF06 - Conectividade:** A sincronização com o servidor central deve acontecer automaticamente em segundo plano assim que houver rede disponível, priorizando o menor consumo possível de dados móveis, sem travar o uso do app nem exigir ação manual do usuário — relevante porque boa parte dos ACS utiliza planos de dados limitados em áreas rurais.
+7. **RNF07 - Compatibilidade:** O aplicativo deve manter a mesma usabilidade e legibilidade em diferentes tamanhos e resoluções de tela, incluindo os modelos de entrada mais comuns entre ACS e UBS, sem quebra de layout ou elementos cortados.
+8. **RNF08 - Dispositivos e sistema operacional:** O aplicativo deve rodar em Android a partir da versão 8.0, exigindo no mínimo 2GB de RAM, 1GB de armazenamento interno livre e câmera com autofoco, necessária para a leitura do CNS por OCR/QR Code (RF15).
+9. **RNF09 - Restrições do estudo de caso (confiabilidade):** Nenhum dado inserido em campo pode se perder em caso de fechamento inesperado, queda de bateria ou reinício do aparelho, já que a intermitência de energia e conexão foi apontada como condição recorrente nas comunidades atendidas.
+10. **RNF10 - Autonomia de bateria:** O aplicativo deve manter baixo consumo de bateria durante o uso contínuo, permitindo que o ACS complete um turno inteiro de atendimentos em campo sem necessidade de recarga.
+11. **RNF11 - Rastreabilidade e auditoria:** Toda edição ou exclusão controlada de um registro (cadastro, medição ou vínculo de responsável) deve manter um log com usuário responsável, data e motivo da alteração, preservando a rastreabilidade do histórico.
+12. **RNF12 - Interoperabilidade:** O relatório exportado deve seguir um formato compatível com sistemas oficiais de saúde, como o e-SUS APS e o SISVAN, viabilizando integração futura com bases municipais e estaduais.
+13. **RNF13 - Manutenibilidade:** A atualização das tabelas de referência de crescimento da OMS deve ser possível sem exigir reinstalação do aplicativo nem perda do histórico de avaliações já salvas no dispositivo.
 
 
 ## 4. CRUD
