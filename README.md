@@ -16,9 +16,7 @@
 
 O NutriMirim é um projeto voltado para a vigilância nutricional infantil, desenvolvido para apoiar Agentes Comunitários de Saúde (ACS), pediatras, médicos especialistas e nutricionistas no combate à desnutrição e ao nanismo em comunidades carentes e Unidades Básicas de Saúde (UBS).
 
-## Responsabilidade de cada integrante nesta atividade - 09/09/2026
-
-## ATIVIDADE 01 — ANÁLISE DO ESTUDO DE CASO
+## ATIVIDADE 01 — ANÁLISE DO ESTUDO DE CASO 02/02/2026
 
 | Integrante | Responsabilidade |
 | --- | --- |
@@ -27,7 +25,7 @@ O NutriMirim é um projeto voltado para a vigilância nutricional infantil, dese
 | Lorena Reis Santos | Contexto de uso; objetivo e proposta de valor |
 | Talita Santos das Virgens | Restrições e condições; pontos de atenção |
 
-## ATIVIDADE 02 — PESQUISA, BENCHMARK E PERSONAS
+## ATIVIDADE 02 — PESQUISA, BENCHMARK E PERSONAS - 09/09/2026
 
 | Integrante | Responsabilidade |
 | --- | --- |
@@ -37,3 +35,12 @@ O NutriMirim é um projeto voltado para a vigilância nutricional infantil, dese
 | Lorena Reis Santos | Benchmark |
 | Talita Santos das Virgens | Personas e atualizar o README.md |
 
+## ATIVIDADE 03 — FUNCIONALIDADES E REQUISITOS - 16/09/2026 
+
+| Integrante | Responsabilidade | 
+| --- | --- | 
+| Alexandre Afonso Silva Virgens | Requisitos não funcionais | 
+| Davi Santana Lóz | CRUD e atualizar o CHANGELOG.md | 
+| Larissa Barbosa dos Santos | Funcionalidades | 
+| Lorena Reis Santos | Requisitos funcionais e apresentação | 
+| Talita Santos das Virgens | Priorização e atualizar o README.md | 
