@@ -100,22 +100,82 @@ Com base na análise do estudo de caso, pesquisa, benchmark e personas, o app ir
 
 ## RF01 a RF19
 
-1. **RF01 - Cadastro de Criança:** O sistema deve permitir o registro e persistência de dados cadastrais (nome, data de nascimento, sexo e responsável legal).
-2. **RF02 - Validação e Registro Antropométrico:** O sistema deve validar (faixas fisiológicas compatíveis com idade/peso) e salvar peso (kg), estatura/altura (cm) e data da medição.
-3. **RF03 - Cálculo Automático de z-score:** O sistema deve calcular automaticamente o z-score para os indicadores peso-para-idade, altura-para-idade, peso-para-altura e IMC-para-idade via tabelas OMS.
-4. **RF04 - Classificação Semafórica:** O sistema deve mapear o z-score calculado para faixas de risco e exibir o indicador visual correspondente (verde, amarelo, vermelho) com legenda descritiva.
-5. **RF05 - Consulta de Histórico Longitudinal:** O sistema deve recuperar e exibir a listagem cronológica de todas as avaliações antropométricas prévias de uma criança cadastrada.
-6. **RF06 - Plotagem em Curva OMS:** O sistema deve renderizar o gráfico de referência da OMS plotando os pontos históricos e o ponto atual da criança para o indicador selecionado.
-7. **RF07 - Persistência Local (Offline-First):** O sistema deve gravar e ler cadastros e avaliações diretamente no banco de dados local do dispositivo móvel sem exigir conexão ativa.
-8. **RF08 - Sincronização de Dados:** O sistema deve identificar o retorno da conectividade de rede e enviar os registros locais pendentes para o servidor central (quando aplicável).
-9. **RF09 - Fluxo de Atendimento em Campo (Wizard):** O sistema deve disponibilizar um fluxo sequencial otimizado (máximo de 3 etapas: seleção/cadastro > medição > resultado) para agilizar o atendimento.
-10. **RF10 - Exportação de Relatório Resumido:** O sistema deve gerar um resumo textual/visual simplificado da avaliação (com dados da criança, z-score e classificação) para compartilhamento ou leitura rápida do responsável.
-11. **RF11 - Busca de Cadastros:** O sistema deve permitir a busca rápida de crianças cadastradas por nome parcial ou CPF/identificador do responsável em base local.
-12. **RF12 - Alerta de Encaminhamento Clínico:** O sistema deve exibir modal de alerta prioritário com diretriz de encaminhamento médico imediato ao detectar z-scores críticos (vermelho severo).
-13. **RF13 - Micro-condutas por Faixa de Risco:** O sistema deve apresentar orientações práticas padronizadas (ex: reforço de aleitamento materno, marcos alimentares) vinculadas à cor do semafórico.
-14. **RF14 - Revisão/Exclusão de Medição Recente:** O sistema deve permitir a correção ou exclusão de um lançamento antropométrico incorreto em até 15 minutos após o registro em campo.
-15. **RF15 - Leitura de CNS (Cartão SUS) via Câmera:** O sistema deve capturar o número do Cartão Nacional de Saúde por OCR/QR Code para preenchimento ágil do identificador do usuário.
-16. **RF16 - Indicador de Status de Sincronização:** O sistema deve sinalizar visualmente no histórico quais registros locais estão pendentes de envio ao servidor central.
-17. **RF17 - Sugestão de Retorno por Risco:** O sistema deve calcular e sugerir a data ideal de reavaliação com base na gravidade (ex: 30 dias para alto risco, 180 dias para escore normal).
-18. **RF18 - Vinculação de Unidade/Campanha:** O sistema deve permitir associar o lote de atendimentos a uma UBS específica ou código de microárea/campanha do ACS.
-19. **RF19 - Consolidado de Atendimento do Turno:** O sistema deve gerar um relatório resumido agregando quantitativos de triagem do dia (total avaliado, distribuído por cores do semafórico) para o ACS.
+# Requisitos Funcionais
+
+## RF01 a RF19
+
+### RF01 - Cadastro de Criança
+
+O sistema deve permitir o registro e persistência de dados cadastrais (nome, data de nascimento, sexo e responsável legal).
+
+### RF02 - Validação e Registro Antropométrico
+
+O sistema deve validar faixas fisiológicas compatíveis com idade e peso e salvar peso (kg), estatura/altura (cm) e data da medição.
+
+### RF03 - Cálculo Automático de z-score
+
+O sistema deve calcular automaticamente o z-score para os indicadores peso-para-idade, altura-para-idade, peso-para-altura e IMC-para-idade via tabelas OMS.
+
+### RF04 - Classificação Semafórica
+
+O sistema deve mapear o z-score calculado para faixas de risco e exibir o indicador visual correspondente (verde, amarelo ou vermelho) com legenda descritiva.
+
+### RF05 - Consulta de Histórico Longitudinal
+
+O sistema deve recuperar e exibir a listagem cronológica de todas as avaliações antropométricas prévias de uma criança cadastrada.
+
+### RF06 - Plotagem em Curva OMS
+
+O sistema deve renderizar o gráfico de referência da OMS, plotando os pontos históricos e o ponto atual da criança para o indicador selecionado.
+
+### RF07 - Persistência Local (Offline-First)
+
+O sistema deve gravar e ler cadastros e avaliações diretamente no banco de dados local do dispositivo móvel, sem exigir conexão ativa.
+
+### RF08 - Sincronização de Dados
+
+O sistema deve identificar o retorno da conectividade de rede e enviar os registros locais pendentes para o servidor central, quando aplicável.
+
+### RF09 - Fluxo de Atendimento em Campo (Wizard)
+
+O sistema deve disponibilizar um fluxo sequencial otimizado, com no máximo três etapas (seleção/cadastro > medição > resultado), para agilizar o atendimento.
+
+### RF10 - Exportação de Relatório Resumido
+
+O sistema deve gerar um resumo textual/visual simplificado da avaliação, com dados da criança, z-score e classificação, para compartilhamento ou leitura rápida do responsável.
+
+### RF11 - Busca de Cadastros
+
+O sistema deve permitir a busca rápida de crianças cadastradas por nome parcial ou CPF/identificador do responsável em base local.
+
+### RF12 - Alerta de Encaminhamento Clínico
+
+O sistema deve exibir um modal de alerta prioritário com diretriz de encaminhamento médico imediato ao detectar z-scores críticos (vermelho severo).
+
+### RF13 - Microcondutas por Faixa de Risco
+
+O sistema deve apresentar orientações práticas padronizadas, como reforço do aleitamento materno e marcos alimentares, vinculadas à cor do semáforo.
+
+### RF14 - Revisão ou Exclusão de Medição Recente
+
+O sistema deve permitir a correção ou exclusão de um lançamento antropométrico incorreto em até 15 minutos após o registro em campo.
+
+### RF15 - Leitura de CNS (Cartão SUS) via Câmera
+
+O sistema deve capturar o número do Cartão Nacional de Saúde por OCR ou QR Code para preenchimento ágil do identificador do usuário.
+
+### RF16 - Indicador de Status de Sincronização
+
+O sistema deve sinalizar visualmente no histórico quais registros locais estão pendentes de envio ao servidor central.
+
+### RF17 - Sugestão de Retorno por Risco
+
+O sistema deve calcular e sugerir a data ideal de reavaliação com base na gravidade, como 30 dias para alto risco e 180 dias para escore normal.
+
+### RF18 - Vinculação de Unidade ou Campanha
+
+O sistema deve permitir associar o lote de atendimentos a uma UBS específica ou ao código de microárea/campanha do ACS.
+
+### RF19 - Consolidado de Atendimento do Turno
+
+O sistema deve gerar um relatório resumido agregando quantitativos de triagem do dia (total avaliado, distribuído por cores do semáforo) para o ACS.
