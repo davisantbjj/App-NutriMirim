@@ -96,9 +96,9 @@ Com base na análise do estudo de caso, pesquisa, benchmark e personas, o app ir
 
 ---
 
-# Requisitos Funcionais
+## 2.2. Requisitos Funcionais
 
-## RF01 a RF19
+### RF01 a RF19
 
 1. **RF01 - Cadastro de Criança:** O sistema deve permitir o registro e persistência de dados cadastrais (nome, data de nascimento, sexo e responsável legal).
 2. **RF02 - Validação e Registro Antropométrico:** O sistema deve validar (faixas fisiológicas compatíveis com idade/peso) e salvar peso (kg), estatura/altura (cm) e data da medição.
