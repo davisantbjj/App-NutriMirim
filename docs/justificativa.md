@@ -84,3 +84,4 @@ O NutriMirim segue uma arquitetura cliente-servidor, com o aplicativo móvel de 
 - Geração de relatórios: produz o relatório de acompanhamento da criança a partir da curva de crescimento.
 
 Separar o cálculo em um módulo próprio permite atualizar as tabelas da OMS ou os critérios de classificação sem mexer nas telas. O armazenamento local com sincronização garante que o trabalho de campo não pare por falta de internet.
+v
