@@ -51,6 +51,6 @@ O NutriMirim é um projeto voltado para a vigilância nutricional infantil, dese
 | --- | --- | 
 | Alexandre Afonso Silva Virgens | Telas: Recuperação de senha 02A-02C | 
 | Davi Santana Lóz | Telas: Abertura 01 - Login 02 - inicio 03 | 
-| Larissa Barbosa dos Santos | Telas: Nova avaliação 04 - Cadastro da criança 05 - Registro de Medidas 06; Baixa fidelidade | 
+| Larissa Barbosa dos Santos | Telas: Nova avaliação 04 - Cadastro da criança 05 - Registro de Medidas 06; Baixa fidelidade e justificativas.md | 
 | Lorena Reis Santos | Telas: Dados da criança 10 - Perfil Profissional 11 - Cadastro de Crianças 12; Apresentação | 
 | Talita Santos das Virgens |Telas: Resultado 07 - Curva de Crescimento 08 - Histórico 09; Atualizar o README.md e o CHANGELOG.md| 
