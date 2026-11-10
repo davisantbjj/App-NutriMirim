@@ -194,7 +194,9 @@ Só há um dia de prazo, então esta entrega reúne apenas as tasks pequenas, qu
 | Talita | 🔴 Curva com a criança selecionada | 🔴 z-score OMS: tabelas carregadas e primeiro indicador funcionando |
 | Lorena | 🔴 Criança passada pelo fluxo todo | — |
 
-### Semana 3 — entrega final qua 02/12/2026: tasks difíceis do back-end e integração
+### Semana 3 — entrega final ter 01/12/2026: tasks difíceis do back-end e integração
+
+A entrega final é na **terça-feira**, um dia antes do ritmo das quartas.
 
 | Integrante | Front-end | Back-end |
 | --- | --- | --- |
@@ -204,7 +206,7 @@ Só há um dia de prazo, então esta entrega reúne apenas as tasks pequenas, qu
 | Talita | (idem) | 🔴 z-score: os 4 indicadores integrados ao Resultado e à Curva |
 | Lorena | (idem) | 🔴 Histórico, busca e perfil no Firestore |
 
-**Até ter 02/12:** todos os PRs na `develop`. **Na quarta 02/12:** merge da `develop` na `main` e entrega.
+**Até seg 30/11:** todos os PRs na `develop`. **Na terça 01/12:** merge da `develop` na `main` e entrega final do app.
 
 ## Como subir sua task (branches)
 
@@ -270,6 +272,7 @@ Regras: uma linha por pedido, a mais recente no fim. Copie o prompt **exatamente
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "faça a divisao do backend da mesma forma que voce fez o front. cria as entregas semnas para todo o projeto em 3 semanas. entregando toda quarta feira." | Propôs o back-end com Firebase e repositórios, dividiu uma task fácil e uma difícil de back-end para cada integrante e montou o cronograma de 3 semanas (entregas em 18/11, 25/11 e 02/12) em `CONTEXTO_IA.md`. |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "a primeira entrega tem que ser amanha" | Adicionou a Entrega 1 em 11/11 com as tasks fáceis do front-end e moveu a task fácil de back-end do Davi para a semana de 18/11. |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "atualize o readme e changelog do que foi feito na semana passda e hoje" | Atualizou `README.md` (desenvolvimento de 04/11, planejamento de 10/11, cronograma e como rodar) e `CHANGELOG.md` (registros de 04/11 e 10/11). |
+| 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "entrefa final do app é dia 1" | Mudou a entrega final de qua 02/12 para ter 01/12 no cronograma do `CONTEXTO_IA.md`, no `README.md` e no `CHANGELOG.md`. |
 
 ### Prompts longos
 

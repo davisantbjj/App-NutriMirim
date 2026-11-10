@@ -69,14 +69,14 @@ O NutriMirim é um projeto voltado para a vigilância nutricional infantil, dese
 
 As tasks de cada integrante, o cronograma e o fluxo de branches estão detalhados no [`CONTEXTO_IA.md`](CONTEXTO_IA.md).
 
-### Cronograma de entregas (às quartas-feiras)
+### Cronograma de entregas (às quartas-feiras; a final é na terça)
 
 | Entrega | Data | Conteúdo |
 | --- | --- | --- |
 | 1 | 11/11/2026 | Tasks fáceis do front-end |
 | 2 | 18/11/2026 | Modelos de dados e tasks fáceis do back-end |
 | 3 | 25/11/2026 | Tasks difíceis do front-end e repositórios |
-| 4 | 02/12/2026 | Tasks difíceis do back-end, integração e entrega final |
+| 4 | 01/12/2026 | Tasks difíceis do back-end, integração e entrega final do app |
 
 ## Como rodar o aplicativo
 

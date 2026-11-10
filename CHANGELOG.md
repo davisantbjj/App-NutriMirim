@@ -5,7 +5,7 @@
 - Padrão de commits em português (`tipo: descrição`) e fluxo de trabalho com uma branch por task e Pull Request para a `develop`.
 - Divisão das tasks de front-end e back-end entre os 5 integrantes, com uma task fácil e uma difícil para cada um.
 - Proposta de back-end com Firebase (Auth e Firestore com funcionamento offline) e camada de repositórios.
-- Cronograma de 3 semanas com entregas às quartas-feiras: 11/11, 18/11, 25/11 e 02/12.
+- Cronograma de 3 semanas com entregas às quartas-feiras (11/11, 18/11 e 25/11) e entrega final do app na terça-feira, 01/12.
 - Lista de pendências encontradas na revisão geral do código.
 
 ### Modificado
