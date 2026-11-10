@@ -10,7 +10,7 @@ Este arquivo guarda o histórico do que as IAs (Claude, ChatGPT, Gemini, Copilot
 >
 > 1. **Leia este arquivo inteiro antes de começar.** Ele resume o projeto, o que já foi feito e as decisões tomadas. Não refaça trabalho que já está registrado aqui e não contrarie decisões registradas sem avisar o integrante.
 > 2. **Ao terminar a tarefa, registre o que fez.** Adicione uma linha no fim da tabela da seção "Registro de prompts", com: data, integrante, ferramenta/modelo, o prompt **exatamente como foi escrito** (sem corrigir) e um resumo curto do que foi feito e de quais arquivos mudaram.
-> 3. **Se a tarefa mudou o projeto** (nova tela, nova regra, nova decisão), atualize também a seção "O que já foi feito" ou "Decisões e cuidados".
+> 3. **Se a tarefa mudou o projeto** (nova tela, nova regra, nova decisão), atualize também a seção "Decisões e cuidados" ou "Pendências conhecidas".
 > 4. **Não apague nem reescreva registros antigos.** Só acrescente.
 > 5. Responda em **português**, inclusive nas mensagens de commit (ver o padrão em "Decisões e cuidados").
 > 6. Se você não puder editar arquivos (ex.: chat no navegador), entregue no fim da resposta a linha pronta para o integrante colar na tabela.
@@ -92,21 +92,6 @@ flutter test        # testes
 ```
 
 ---
-
-## O que já foi feito
-
-| Data | O quê | Feito com IA? |
-| --- | --- | --- |
-| 02/09 a 29/09/2026 | Atividades 01 a 05: estudo de caso, pesquisa, benchmark, personas, requisitos, protótipos e apresentações (ver `README.md` e `CHANGELOG.md`) | Não registrado |
-| 04/11/2026 | Criação do projeto Flutter, fontes e logos do protótipo | Não registrado |
-| 04/11/2026 | Tema com cores em contraste AA e componentes compartilhados | Não registrado |
-| 04/11/2026 | Modelos e dados mock fictícios | Não registrado |
-| 04/11/2026 | Telas 01 a 12 fiéis ao protótipo do Figma, com validação no registro de medidas (faixas, vírgula decimal, data obrigatória) e aviso de resultado ilustrativo | Não registrado |
-| 04/11/2026 | Testes: validações, contraste AA, conteúdo e overflow das telas em 360 dp | Não registrado |
-| 10/11/2026 | Revisão geral do código pelo agente revisor do Claude Code | Sim — Claude Code |
-| 10/11/2026 | Criação deste arquivo `CONTEXTO_IA.md` | Sim — Claude Code |
-
-> Quem fez alguma das etapas "Não registrado" com ajuda de IA pode corrigir a coluna e adicionar o prompt no registro abaixo.
 
 ## Decisões e cuidados
 
