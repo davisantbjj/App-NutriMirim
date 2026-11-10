@@ -121,7 +121,7 @@ Encontradas na revisão de 10/11/2026 e ainda não corrigidas. Ao corrigir uma, 
 - [ ] A formatação de número e de data está duplicada em várias telas.
 - [ ] Faltam testes de login, recuperação de senha, cadastro, lista, barra inferior e histórico.
 
-## Divisão de tarefas (a partir de 10/11/2026)
+## Divisão de tarefas — front-end (a partir de 10/11/2026)
 
 Cada integrante continua com as telas que prototipou na Atividade 04/05 e tem uma task fácil e uma difícil. Cada task deve sair com pelo menos um teste novo, e `flutter analyze` e `flutter test` precisam continuar passando.
 
@@ -134,6 +134,65 @@ Cada integrante continua com as telas que prototipou na Atividade 04/05 e tem um
 | Larissa Barbosa dos Santos | 04 Nova avaliação, 05 Cadastro, 06 Registro de medidas | No cadastro: tirar a pré-seleção do sexo, adicionar `Semantics` (botão e selecionado) ao seletor e trocar o nascimento em texto livre por um DatePicker. | Fazer o cadastro salvar de verdade: controllers nos campos, máscara e dígito verificador do CPF e "Editar dados" abrindo o formulário preenchido com a criança escolhida. Escrever testes de validação. |
 | Talita Santos das Virgens | 07 Resultado, 08 Curva, 09 Histórico | No Histórico: abrir a criança certa ao tocar no item, ordenar a lista da avaliação mais recente para a mais antiga e remover o filtro que só tem a opção "Todas". Escrever um teste do clique. | Na Curva: usar a criança selecionada em vez de dados fixos, alinhar o mock com a regra provisória (o caso dos 9,8 kg e a diferença 82/85 cm), melhorar o contraste dos rótulos e respeitar o `textScaler` no gráfico. Testar a variação "Desnutrição" do Resultado. |
 | Lorena Reis Santos | 10 Dados da criança, 11 Perfil, 12 Lista de crianças | No Perfil: desabilitar o "Editar dados" ou mostrar "Em breve". Na Lista: fazer a busca ignorar acentos ("joao" encontra "João"). Escrever testes da busca. | Em Dados da criança: passar a criança para Registrar avaliação, Curva, Histórico e Editar dados, para que todo o fluxo mostre a mesma criança. Escrever testes de navegação. |
+
+## Divisão de tarefas — back-end (a partir de 10/11/2026)
+
+### Stack proposta (confirmar com o grupo)
+
+Ainda não existe back-end, e o app usa `MockData`. A proposta é usar o **Firebase**:
+
+- **Firebase Auth:** login, recuperação de senha e sessão.
+- **Cloud Firestore:** banco com **cache offline nativo**. O app grava sem internet e sincroniza sozinho quando a rede volta, o que atende RF07 e RF08 sem precisar escrever um servidor próprio.
+- **Camada de repositório:** as telas nunca falam com o Firebase direto. Elas usam interfaces (`CriancaRepository`, `AvaliacaoRepository`, `AuthService`), e cada interface tem uma implementação com Firestore e outra **em memória**, usada nos testes.
+- **Regras de negócio** (z-score, classificação, validações) em `lib/services/`, como funções puras e testáveis, sem Flutter nem Firebase.
+
+Fora do escopo das 3 semanas, por serem "Secundárias" na priorização: RF15 (leitura do Cartão SUS por câmera), RF19 (consolidado do turno) e a criptografia do banco local (RNF04, que fica registrada como pendência).
+
+### Tasks
+
+| Integrante | Área | 🟢 Task fácil | 🔴 Task difícil |
+| --- | --- | --- | --- |
+| Davi Santana Lóz | Dados e repositórios | Documentar as coleções do Firestore (`profissionais`, `criancas`, `avaliacoes`: campos e tipos) e escrever as **regras de segurança**, para que cada profissional só leia e grave os dados da própria UBS (LGPD). | Criar as interfaces `CriancaRepository` e `AvaliacaoRepository`, com uma implementação em memória e outra com Firestore, e trocar o `MockData` pelos repositórios nas telas. **Publicar as interfaces e a versão em memória primeiro, para os outros já trabalharem em cima delas.** |
+| Alexandre Afonso Silva Virgens | Autenticação e sincronização | Configurar o Firebase no projeto (`firebase_core`, `flutterfire configure`) e criar o `AuthService`: login com e-mail e senha, recuperação de senha (`sendPasswordResetEmail`), logout e manter a sessão aberta. Ligar o serviço às telas 02 e 02A–02C. | Sincronização e status (RF08, RF16): detectar se há rede, mostrar no Histórico os registros pendentes de envio (`hasPendingWrites`) e testar o fluxo com o modo avião. |
+| Larissa Barbosa dos Santos | Cadastro e medições | Criar `services/validadores.dart` com o dígito verificador do CPF e as faixas fisiológicas por idade (RF02), com testes. | Salvar a criança e a avaliação pelos repositórios (RF01, RF02) e permitir corrigir uma medição até 15 minutos depois do registro (RF14), com o registro de quem alterou e quando (RNF11). |
+| Talita Santos das Virgens | Cálculo nutricional | Criar `services/classificacao.dart` com a classificação semafórica a partir do z-score (RF04), as micro-condutas por faixa (RF13), a sugestão da data de retorno (RF17) e o alerta de encaminhamento para z-score crítico (RF12), com testes. | Cálculo do z-score pela OMS (RF03): carregar as tabelas LMS da OMS (0 a 5 anos) como asset JSON, calcular peso-para-idade, altura-para-idade, peso-para-altura e IMC-para-idade com `z = ((X/M)^L − 1) / (L·S)` e fornecer os pontos da Curva (RF06). Testar contra valores das tabelas oficiais. **Substitui a regra provisória `peso < 10`.** |
+| Lorena Reis Santos | Consultas e relatórios | Gerar o relatório resumido da avaliação em texto (RF10): dados da criança, z-score, classificação e data, com o botão de compartilhar. | Consultas: histórico longitudinal em ordem de data (RF05), busca por nome parcial ou CPF do responsável (RF11, guardando o nome normalizado sem acentos para a busca) e perfil do profissional com a UBS e a microárea (RF18). |
+
+## Cronograma — 3 semanas, entregas às quartas
+
+Toda entrega é um **merge na `develop`** feito até a quarta-feira, com `flutter analyze` e `flutter test` passando. Em cada quarta, o grupo confere junto o que entrou e ajusta a semana seguinte.
+
+### Semana 1 — entrega qua 18/11/2026: base e tasks fáceis
+
+| Integrante | Front-end | Back-end |
+| --- | --- | --- |
+| Davi | 🟢 Barra inferior · 🔴 `id` e `DateTime` nos modelos + formatadores (**até sex 13/11**, porque bloqueia outros) | — |
+| Alexandre | 🟢 `pt_BR` + testes da recuperação | 🟢 Firebase configurado + `AuthService` |
+| Larissa | 🟢 Seletor de sexo, `Semantics` e DatePicker | 🟢 Validadores (CPF e faixas) |
+| Talita | 🟢 Histórico abrindo a criança certa | 🟢 Classificação, condutas, retorno e alerta |
+| Lorena | 🟢 Perfil + busca sem acentos | 🟢 Relatório resumido em texto |
+
+### Semana 2 — entrega qua 25/11/2026: tasks difíceis do front-end e base de dados
+
+| Integrante | Front-end | Back-end |
+| --- | --- | --- |
+| Davi | — | 🟢 Coleções e regras do Firestore · 🔴 Repositórios (**interfaces e versão em memória até qui 19/11**) |
+| Alexandre | 🔴 Alto contraste com `ThemeExtension` | — |
+| Larissa | 🔴 Cadastro salvando e "Editar dados" preenchido | — |
+| Talita | 🔴 Curva com a criança selecionada | 🔴 z-score OMS: tabelas carregadas e primeiro indicador funcionando |
+| Lorena | 🔴 Criança passada pelo fluxo todo | — |
+
+### Semana 3 — entrega final qua 02/12/2026: tasks difíceis do back-end e integração
+
+| Integrante | Front-end | Back-end |
+| --- | --- | --- |
+| Davi | Integração final, `develop` → `main`, `README.md` e `CHANGELOG.md` | Revisar os PRs dos repositórios e das regras |
+| Alexandre | Cada um troca `AppColors` pelo tema nas próprias telas | 🔴 Sincronização e status pendente |
+| Larissa | (idem) | 🔴 Salvar avaliação + correção em 15 min |
+| Talita | (idem) | 🔴 z-score: os 4 indicadores integrados ao Resultado e à Curva |
+| Lorena | (idem) | 🔴 Histórico, busca e perfil no Firestore |
+
+**Até ter 02/12:** todos os PRs na `develop`. **Na quarta 02/12:** merge da `develop` na `main` e entrega.
 
 ## Como subir sua task (branches)
 
@@ -196,6 +255,7 @@ Regras: uma linha por pedido, a mais recente no fim. Copie o prompt **exatamente
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "crie um arquivo de contexto para detalhar o que as ias ja fizerem e esse mesmo arquivo tem que ter um registro de prompts que estao sendo usados. importante esse aruivo se md e que tenha o promp para que todas as llm que os integrantes usarem saibam que tem o contexto e tem que registrar os prompts" | Criou `CONTEXTO_IA.md` (este arquivo). |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "divida as telas para 5 pessoas fazendo com que cada pessoa tenha uma task mais facil e outra mais dificil." | Dividiu as pendências da revisão entre os 5 integrantes (uma task fácil e uma difícil para cada) e adicionou a seção "Divisão de tarefas" em `CONTEXTO_IA.md`. |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "colo que no contexto que os commit sao em portugues para padronizar" | Adicionou o padrão de commits em português nas seções "Decisões e cuidados" e "Instrução para a IA" do `CONTEXTO_IA.md`. |
+| 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "faça a divisao do backend da mesma forma que voce fez o front. cria as entregas semnas para todo o projeto em 3 semanas. entregando toda quarta feira." | Propôs o back-end com Firebase e repositórios, dividiu uma task fácil e uma difícil de back-end para cada integrante e montou o cronograma de 3 semanas (entregas em 18/11, 25/11 e 02/12) em `CONTEXTO_IA.md`. |
 
 ### Prompts longos
 
