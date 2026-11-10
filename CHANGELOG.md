@@ -1,3 +1,26 @@
+## [10/11/2026]
+
+### Adicionado
+- `CONTEXTO_IA.md`: contexto compartilhado para as IAs usadas pelo grupo, com instruções para qualquer LLM, prompt pronto para ferramentas externas e registro dos prompts usados.
+- Padrão de commits em português (`tipo: descrição`) e fluxo de trabalho com uma branch por task e Pull Request para a `develop`.
+- Divisão das tasks de front-end e back-end entre os 5 integrantes, com uma task fácil e uma difícil para cada um.
+- Proposta de back-end com Firebase (Auth e Firestore com funcionamento offline) e camada de repositórios.
+- Cronograma de 3 semanas com entregas às quartas-feiras: 11/11, 18/11, 25/11 e 02/12.
+- Lista de pendências encontradas na revisão geral do código.
+
+### Modificado
+- `README.md` atualizado com o desenvolvimento do aplicativo, o planejamento, o cronograma e como rodar o app.
+- `CHANGELOG.md` atualizado com os registros de 04/11 e 10/11.
+
+## [04/11/2026]
+
+### Adicionado
+- Projeto Flutter do aplicativo NutriMirim (`appnutrimirim/`).
+- Importação do protótipo do Figma para o código.
+
+### Modificado
+- `.gitignore` atualizado para ignorar os arquivos locais do Claude Code.
+
 ## [29/09/2026]
 
 ### Adicionado
