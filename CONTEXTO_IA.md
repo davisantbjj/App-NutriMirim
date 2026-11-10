@@ -162,21 +162,33 @@ Fora do escopo das 3 semanas, por serem "Secundárias" na priorização: RF15 (l
 
 Toda entrega é um **merge na `develop`** feito até a quarta-feira, com `flutter analyze` e `flutter test` passando. Em cada quarta, o grupo confere junto o que entrou e ajusta a semana seguinte.
 
-### Semana 1 — entrega qua 18/11/2026: base e tasks fáceis
+### Entrega 1 — qua 11/11/2026 (amanhã): tasks fáceis do front-end
+
+Só há um dia de prazo, então esta entrega reúne apenas as tasks pequenas, que mexem em poucos arquivos.
 
 | Integrante | Front-end | Back-end |
 | --- | --- | --- |
-| Davi | 🟢 Barra inferior · 🔴 `id` e `DateTime` nos modelos + formatadores (**até sex 13/11**, porque bloqueia outros) | — |
-| Alexandre | 🟢 `pt_BR` + testes da recuperação | 🟢 Firebase configurado + `AuthService` |
-| Larissa | 🟢 Seletor de sexo, `Semantics` e DatePicker | 🟢 Validadores (CPF e faixas) |
-| Talita | 🟢 Histórico abrindo a criança certa | 🟢 Classificação, condutas, retorno e alerta |
-| Lorena | 🟢 Perfil + busca sem acentos | 🟢 Relatório resumido em texto |
+| Davi | 🟢 Barra inferior sem a Home duplicada | — |
+| Alexandre | 🟢 `pt_BR` + testes da recuperação | — |
+| Larissa | 🟢 Seletor de sexo, `Semantics` e DatePicker | — |
+| Talita | 🟢 Histórico abrindo a criança certa | — |
+| Lorena | 🟢 Perfil + busca sem acentos | — |
 
-### Semana 2 — entrega qua 25/11/2026: tasks difíceis do front-end e base de dados
+### Semana 1 — entrega qua 18/11/2026: base de dados e tasks fáceis do back-end
 
 | Integrante | Front-end | Back-end |
 | --- | --- | --- |
-| Davi | — | 🟢 Coleções e regras do Firestore · 🔴 Repositórios (**interfaces e versão em memória até qui 19/11**) |
+| Davi | 🔴 `id` e `DateTime` nos modelos + formatadores (**até sex 13/11**, porque bloqueia outros) | 🟢 Coleções e regras do Firestore |
+| Alexandre | — | 🟢 Firebase configurado + `AuthService` |
+| Larissa | — | 🟢 Validadores (CPF e faixas) |
+| Talita | — | 🟢 Classificação, condutas, retorno e alerta |
+| Lorena | — | 🟢 Relatório resumido em texto |
+
+### Semana 2 — entrega qua 25/11/2026: tasks difíceis do front-end e repositórios
+
+| Integrante | Front-end | Back-end |
+| --- | --- | --- |
+| Davi | — | 🔴 Repositórios (**interfaces e versão em memória até qui 19/11**) |
 | Alexandre | 🔴 Alto contraste com `ThemeExtension` | — |
 | Larissa | 🔴 Cadastro salvando e "Editar dados" preenchido | — |
 | Talita | 🔴 Curva com a criança selecionada | 🔴 z-score OMS: tabelas carregadas e primeiro indicador funcionando |
@@ -256,6 +268,7 @@ Regras: uma linha por pedido, a mais recente no fim. Copie o prompt **exatamente
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "divida as telas para 5 pessoas fazendo com que cada pessoa tenha uma task mais facil e outra mais dificil." | Dividiu as pendências da revisão entre os 5 integrantes (uma task fácil e uma difícil para cada) e adicionou a seção "Divisão de tarefas" em `CONTEXTO_IA.md`. |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "colo que no contexto que os commit sao em portugues para padronizar" | Adicionou o padrão de commits em português nas seções "Decisões e cuidados" e "Instrução para a IA" do `CONTEXTO_IA.md`. |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "faça a divisao do backend da mesma forma que voce fez o front. cria as entregas semnas para todo o projeto em 3 semanas. entregando toda quarta feira." | Propôs o back-end com Firebase e repositórios, dividiu uma task fácil e uma difícil de back-end para cada integrante e montou o cronograma de 3 semanas (entregas em 18/11, 25/11 e 02/12) em `CONTEXTO_IA.md`. |
+| 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "a primeira entrega tem que ser amanha" | Adicionou a Entrega 1 em 11/11 com as tasks fáceis do front-end e moveu a task fácil de back-end do Davi para a semana de 18/11. |
 
 ### Prompts longos
 
