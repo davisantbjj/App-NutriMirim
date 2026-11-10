@@ -13,7 +13,8 @@ Este arquivo guarda o histórico do que as IAs (Claude, ChatGPT, Gemini, Copilot
 > 3. **Se a tarefa mudou o projeto** (nova tela, nova regra, nova decisão), atualize também a seção "Decisões e cuidados" ou "Pendências conhecidas".
 > 4. **Não apague nem reescreva registros antigos.** Só acrescente.
 > 5. Responda em **português**, inclusive nas mensagens de commit (ver o padrão em "Decisões e cuidados").
-> 6. Se você não puder editar arquivos (ex.: chat no navegador), entregue no fim da resposta a linha pronta para o integrante colar na tabela.
+> 6. **Nunca commite direto na `main` nem na `develop`.** Trabalhe numa branch da task e siga a seção "Como subir sua task (branches)".
+> 7. Se você não puder editar arquivos (ex.: chat no navegador), entregue no fim da resposta a linha pronta para o integrante colar na tabela.
 
 ### Prompt para colar no início da conversa (ChatGPT, Gemini, Copilot, etc.)
 
@@ -133,6 +134,55 @@ Cada integrante continua com as telas que prototipou na Atividade 04/05 e tem um
 | Larissa Barbosa dos Santos | 04 Nova avaliação, 05 Cadastro, 06 Registro de medidas | No cadastro: tirar a pré-seleção do sexo, adicionar `Semantics` (botão e selecionado) ao seletor e trocar o nascimento em texto livre por um DatePicker. | Fazer o cadastro salvar de verdade: controllers nos campos, máscara e dígito verificador do CPF e "Editar dados" abrindo o formulário preenchido com a criança escolhida. Escrever testes de validação. |
 | Talita Santos das Virgens | 07 Resultado, 08 Curva, 09 Histórico | No Histórico: abrir a criança certa ao tocar no item, ordenar a lista da avaliação mais recente para a mais antiga e remover o filtro que só tem a opção "Todas". Escrever um teste do clique. | Na Curva: usar a criança selecionada em vez de dados fixos, alinhar o mock com a regra provisória (o caso dos 9,8 kg e a diferença 82/85 cm), melhorar o contraste dos rótulos e respeitar o `textScaler` no gráfico. Testar a variação "Desnutrição" do Resultado. |
 | Lorena Reis Santos | 10 Dados da criança, 11 Perfil, 12 Lista de crianças | No Perfil: desabilitar o "Editar dados" ou mostrar "Em breve". Na Lista: fazer a busca ignorar acentos ("joao" encontra "João"). Escrever testes da busca. | Em Dados da criança: passar a criança para Registrar avaliação, Curva, Histórico e Editar dados, para que todo o fluxo mostre a mesma criança. Escrever testes de navegação. |
+
+## Como subir sua task (branches)
+
+**Ninguém commita direto na `main` nem na `develop`.** Cada task é feita numa branch própria, criada a partir da `develop`, e só entra na `develop` por Pull Request (PR).
+
+- `main`: versão entregue. Só recebe a `develop` nas entregas.
+- `develop`: versão em desenvolvimento, sempre funcionando.
+- `tipo/descricao-curta`: uma branch por task. O tipo é o mesmo dos commits (`feat`, `fix`, `test`, `docs`, `refactor`). Exemplos: `fix/barra-inferior-home`, `feat/cadastro-salvar`, `fix/historico-crianca`.
+
+### Passo a passo
+
+```bash
+# 1. Atualizar a develop e criar a branch da task
+git checkout develop
+git pull
+git checkout -b fix/barra-inferior-home
+
+# 2. Trabalhar e commitar (mensagens em português)
+git add <arquivos>
+git commit -m "fix: barra inferior não duplica a Home"
+
+# 3. Antes de subir, conferir se está tudo passando (dentro de appnutrimirim/)
+flutter analyze
+flutter test
+
+# 4. Subir a branch
+git push -u origin fix/barra-inferior-home
+```
+
+5. No GitHub, abra um **Pull Request da sua branch para a `develop`**, não para a `main`. No título, use o mesmo padrão dos commits. Na descrição, conte o que mudou e como testar.
+6. Peça para **outro integrante revisar**. Depois da aprovação, faça o merge e apague a branch.
+
+### Quando a `develop` mudou enquanto você trabalhava
+
+Se alguém fez merge antes de você (por exemplo, a task de modelos do Davi), traga as mudanças para a sua branch antes de abrir o PR:
+
+```bash
+git checkout develop
+git pull
+git checkout <sua-branch>
+git merge develop
+# se der conflito: resolva os arquivos, depois "git add" e "git commit"
+```
+
+### Cuidados
+
+- Uma branch por task. A task fácil e a difícil ficam em branches separadas.
+- Antes de começar, faça commit ou guarde o que estiver pendente. Evite deixar `git stash` esquecido: um stash antigo causou um conflito no `docs/requisitos.md` em 10/11/2026.
+- Não suba arquivos gerados (`build/`, `.dart_tool/`), que o `.gitignore` já ignora.
 
 ---
 
