@@ -113,10 +113,10 @@ Encontradas na revisão de 10/11/2026 e ainda não corrigidas. Ao corrigir uma, 
 - [ ] As telas de dados, registro, curva e histórico não passam a criança adiante, e "Editar dados" abre o cadastro vazio (`dados_crianca_screen.dart`).
 - [ ] O mock contradiz a regra provisória `peso < 10 → desnutrição`: a criança de 9,8 kg aparece como "Normal". A curva mostra 82 cm e o mock tem 85 cm, e os dados da curva estão fixos.
 - [ ] "Editar dados" do Perfil tem `onPressed: () {}`, então o botão parece ativo e não faz nada.
-- [ ] No cadastro, o nascimento é texto livre, o CPF não tem máscara nem validação e o sexo já vem marcado.
+- [x] No cadastro, o nascimento usa DatePicker, o sexo inicia sem seleção e os CPFs têm máscara e validação dos dígitos verificadores.
 - [ ] Os modelos não têm `id`, as datas são `String` e a busca de avaliações é feita por nome.
 - [ ] O "Alto Contraste" quase não muda nada, porque as telas usam `AppColors` e cores fixas direto, sem passar pelo `Theme`.
-- [ ] Não há localização `pt_BR`: o DatePicker aparece em inglês.
+- [x] Localização `pt_BR` configurada; o DatePicker aparece em Português do Brasil.
 - [ ] A borda dos campos tem contraste de 1,35:1 e o WCAG pede 3:1. Há fontes de 9 a 11 px.
 - [ ] A formatação de número e de data está duplicada em várias telas.
 - [ ] Faltam testes de login, recuperação de senha, cadastro, lista, barra inferior e histórico.
@@ -275,6 +275,7 @@ Regras: uma linha por pedido, a mais recente no fim. Copie o prompt **exatamente
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "entrefa final do app é dia 1" | Mudou a entrega final de qua 02/12 para ter 01/12 no cronograma do `CONTEXTO_IA.md`, no `README.md` e no `CHANGELOG.md`. |
 | 11/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "ola, leia o contexto e veja qual é minha taks para entrega de hoje" | Leu o `CONTEXTO_IA.md` e informou a task da Entrega 1 (barra inferior sem a Home duplicada). Nenhum arquivo alterado. |
 | 11/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "sim, pode fazer chame o time" | Criou a branch `fix/barra-inferior-home` e chamou os agentes frontend, testes e revisor. Início agora volta à Home que já está na pilha (`popUntil`) e recria a Home se ela não estiver lá (`lib/widgets/bottom_nav.dart`). Criou `test/bottom_nav_test.dart` com 6 testes de navegação. `flutter analyze` sem problemas e 43 testes passando. Marcou a pendência como corrigida. |
+| 11/11/2026 | Larissa Barbosa dos Santos | Codex (GPT-5.6) | "No campo do CPF, deixar a máscara funcionando, para que ao digitar o número, eles fiquem no formato de CPF. Confirme se máscara e dígito verificador do CPF está funcionando. O calendário está em inglês, deixar em Português Brasileiro. E se atentar a máscara do número telefônico também, para que ele não adicione número a mais, pra seguir conforme a formatação." | Implementou máscaras de CPF e telefone com limite de 11 dígitos, validação dos dígitos verificadores do CPF e localização `pt_BR`; adicionou testes de máscara, limites, CPF válido/inválido e locale do calendário. `dart analyze` sem problemas e 43 testes passando (`pubspec.yaml`, `pubspec.lock`, `lib/main.dart`, `lib/widgets/common.dart`, `lib/utils/input_formatters.dart`, `lib/services/validadores.dart`, `lib/screens/avaliacao/cadastro_crianca_screen.dart`, `test/cadastro_crianca_test.dart`). |
 
 ### Prompts longos
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'app_state.dart';
 import 'routes.dart';
@@ -19,6 +20,9 @@ class NutriMirimApp extends StatelessWidget {
         title: 'NutriMirim',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(highContrast: hc),
+        locale: const Locale('pt', 'BR'),
+        supportedLocales: const [Locale('pt', 'BR')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         initialRoute: Routes.splash,
         routes: Routes.table,
       ),
