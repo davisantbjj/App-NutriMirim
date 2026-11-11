@@ -53,16 +53,36 @@ class AppBottomNav extends StatelessWidget {
                 selected: tab == current,
                 onTap: tab == current
                     ? null
-                    : () => Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        route,
-                        (r) => r.settings.name == Routes.home,
-                      ),
+                    : () => _navegar(context, route),
               ),
           ],
         ),
       ),
     );
+  }
+
+  /// Início volta à Home que já está na pilha (ou recria a Home se ela não
+  /// estiver lá); as outras abas ficam sobre ela.
+  static void _navegar(BuildContext context, String route) {
+    final navigator = Navigator.of(context);
+    if (route != Routes.home) {
+      navigator.pushNamedAndRemoveUntil(
+        route,
+        (r) => r.settings.name == Routes.home,
+      );
+      return;
+    }
+    var achouHome = false;
+    navigator.popUntil((r) {
+      if (r.settings.name == Routes.home) {
+        achouHome = true;
+        return true;
+      }
+      return r.isFirst; // nunca esvazia a pilha
+    });
+    if (!achouHome) {
+      navigator.pushNamedAndRemoveUntil(Routes.home, (_) => false);
+    }
   }
 }
 

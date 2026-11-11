@@ -19,14 +19,10 @@ class NutriMirimApp extends StatelessWidget {
       builder: (context, hc, _) => MaterialApp(
         title: 'NutriMirim',
         debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(highContrast: hc),
         locale: const Locale('pt', 'BR'),
         supportedLocales: const [Locale('pt', 'BR')],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        theme: AppTheme.light(highContrast: hc),
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         initialRoute: Routes.splash,
         routes: Routes.table,
       ),
