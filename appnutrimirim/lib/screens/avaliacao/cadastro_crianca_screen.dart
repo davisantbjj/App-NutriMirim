@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../data/models.dart';
 import '../../routes.dart';
+import '../../services/validadores.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/input_formatters.dart';
 import '../../widgets/common.dart';
 
 /// TELA 05 — Cadastro da Criança (ficha de identificação).
@@ -15,7 +17,8 @@ class CadastroCriancaScreen extends StatefulWidget {
 
 class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
   final _formKey = GlobalKey<FormState>();
-  Sexo _sexo = Sexo.masculino;
+  final _nascimento = TextEditingController();
+  Sexo? _sexo;
   String? _ubs;
 
   static const _ubsOpcoes = [
@@ -24,6 +27,28 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
     'UBS Ponto Novo',
     'UBS Centro',
   ];
+
+  @override
+  void dispose() {
+    _nascimento.dispose();
+    super.dispose();
+  }
+
+  Future<void> _escolherNascimento() async {
+    final hoje = DateTime.now();
+    final data = await showDatePicker(
+      context: context,
+      initialDate: hoje,
+      firstDate: DateTime(hoje.year - 6),
+      lastDate: hoje,
+    );
+    if (!mounted || data == null) return;
+
+    _nascimento.text =
+        '${data.day.toString().padLeft(2, '0')}/'
+        '${data.month.toString().padLeft(2, '0')}/'
+        '${data.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,23 +71,27 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
               hint: 'Digite o nome da criança',
             ),
             gap,
-            const LabeledField(
+            LabeledField(
               label: 'CPF da criança',
               hint: '000.000.000-00',
               icon: Icons.child_care_outlined,
               keyboardType: TextInputType.number,
+              inputFormatters: const [CpfInputFormatter()],
+              validator: (valor) => validarCpf(valor, obrigatorio: false),
             ),
             gap,
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(
+                Expanded(
                   child: LabeledField(
+                    controller: _nascimento,
                     label: 'Nascimento',
                     required: true,
                     hint: 'DD/MM/AAAA',
-                    icon: Icons.cake_outlined,
-                    keyboardType: TextInputType.datetime,
+                    icon: Icons.calendar_today_outlined,
+                    readOnly: true,
+                    onTap: _escolherNascimento,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -119,7 +148,7 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
               hint: 'Nome do pai, mãe ou tutor',
             ),
             gap,
-            const Row(
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
@@ -128,6 +157,8 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
                     required: true,
                     hint: '000.000.000-00',
                     keyboardType: TextInputType.number,
+                    inputFormatters: const [CpfInputFormatter()],
+                    validator: validarCpf,
                   ),
                 ),
                 SizedBox(width: 12),
@@ -138,6 +169,7 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
                     hint: '(00) 00000-0000',
                     icon: Icons.phone_outlined,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: const [TelefoneInputFormatter()],
                   ),
                 ),
               ],
@@ -160,29 +192,38 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
   Widget _sexoToggle() {
     Widget option(Sexo s, String label) {
       final selected = _sexo == s;
+      void selecionar() => setState(() => _sexo = s);
+
       return Expanded(
         child: Padding(
           padding: EdgeInsets.only(left: s == Sexo.feminino ? 4 : 0),
-          child: Material(
-            color: selected ? AppColors.primary : AppColors.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(11),
-              side: BorderSide(
-                color: selected ? AppColors.primary : AppColors.border,
+          child: Semantics(
+            button: true,
+            selected: selected,
+            label: label,
+            onTap: selecionar,
+            excludeSemantics: true,
+            child: Material(
+              color: selected ? AppColors.primary : AppColors.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(11),
+                side: BorderSide(
+                  color: selected ? AppColors.primary : AppColors.border,
+                ),
               ),
-            ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(11),
-              onTap: () => setState(() => _sexo = s),
-              child: SizedBox(
-                height: 48,
-                child: Center(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                      color: selected ? Colors.white : AppColors.textMuted,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(11),
+                onTap: selecionar,
+                child: SizedBox(
+                  height: 48,
+                  child: Center(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        color: selected ? Colors.white : AppColors.textMuted,
+                      ),
                     ),
                   ),
                 ),
