@@ -108,7 +108,7 @@ flutter test        # testes
 
 Encontradas na revisão de 10/11/2026 e ainda não corrigidas. Ao corrigir uma, marque `[x]` e registre o prompt.
 
-- [ ] Tocar em "Início" na barra inferior empilha uma segunda Home (`lib/widgets/bottom_nav.dart:56-60`).
+- [x] Tocar em "Início" na barra inferior empilha uma segunda Home (`lib/widgets/bottom_nav.dart:56-60`). Corrigido em 11/11/2026.
 - [ ] Tocar num item do Histórico sempre abre a mesma criança, porque nenhum argumento é passado (`lib/screens/historico_screen.dart:39`).
 - [ ] As telas de dados, registro, curva e histórico não passam a criança adiante, e "Editar dados" abre o cadastro vazio (`dados_crianca_screen.dart`).
 - [ ] O mock contradiz a regra provisória `peso < 10 → desnutrição`: a criança de 9,8 kg aparece como "Normal". A curva mostra 82 cm e o mock tem 85 cm, e os dados da curva estão fixos.
@@ -273,6 +273,8 @@ Regras: uma linha por pedido, a mais recente no fim. Copie o prompt **exatamente
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "a primeira entrega tem que ser amanha" | Adicionou a Entrega 1 em 11/11 com as tasks fáceis do front-end e moveu a task fácil de back-end do Davi para a semana de 18/11. |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "atualize o readme e changelog do que foi feito na semana passda e hoje" | Atualizou `README.md` (desenvolvimento de 04/11, planejamento de 10/11, cronograma e como rodar) e `CHANGELOG.md` (registros de 04/11 e 10/11). |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "entrefa final do app é dia 1" | Mudou a entrega final de qua 02/12 para ter 01/12 no cronograma do `CONTEXTO_IA.md`, no `README.md` e no `CHANGELOG.md`. |
+| 11/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "ola, leia o contexto e veja qual é minha taks para entrega de hoje" | Leu o `CONTEXTO_IA.md` e informou a task da Entrega 1 (barra inferior sem a Home duplicada). Nenhum arquivo alterado. |
+| 11/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "sim, pode fazer chame o time" | Criou a branch `fix/barra-inferior-home` e chamou os agentes frontend, testes e revisor. Início agora volta à Home que já está na pilha (`popUntil`) e recria a Home se ela não estiver lá (`lib/widgets/bottom_nav.dart`). Criou `test/bottom_nav_test.dart` com 6 testes de navegação. `flutter analyze` sem problemas e 43 testes passando. Marcou a pendência como corrigida. |
 
 ### Prompts longos
 
