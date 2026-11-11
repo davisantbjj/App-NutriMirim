@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/models.dart';
 import '../theme/app_colors.dart';
@@ -139,6 +140,7 @@ class LabeledField extends StatelessWidget {
     this.suffix,
     this.controller,
     this.keyboardType,
+    this.inputFormatters,
     this.obscureText = false,
     this.validator,
     this.readOnly = false,
@@ -154,6 +156,7 @@ class LabeledField extends StatelessWidget {
   final Widget? suffix;
   final TextEditingController? controller;
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
   final bool obscureText;
   final FormFieldValidator<String>? validator;
   final bool readOnly;
@@ -169,6 +172,7 @@ class LabeledField extends StatelessWidget {
           key: fieldKey,
           controller: controller,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           obscureText: obscureText,
           readOnly: readOnly,
           onTap: onTap,
