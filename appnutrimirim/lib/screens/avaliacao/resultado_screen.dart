@@ -6,6 +6,7 @@ import '../../routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
+import '../../utils/formatters.dart';
 
 /// TELA 07 — Resultado (variações Normal e Desnutrição).
 class ResultadoScreen extends StatefulWidget {
@@ -241,7 +242,7 @@ class _IndicadorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final z = ind.zScore.toStringAsFixed(1).replaceAll('.', ',');
+    final z = formatarDecimal(ind.zScore);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(

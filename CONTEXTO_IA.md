@@ -102,6 +102,10 @@ flutter test        # testes
 - **Acessibilidade.** As cores foram escolhidas para contraste AA, e os testes verificam isso. Manter os testes passando ao mudar cores.
 - **Tela pequena.** Os testes checam overflow em 360 dp de largura.
 - **Commits em português.** Toda mensagem de commit é escrita em português, no formato `tipo: descrição curta`, com o verbo no presente. Tipos usados: `feat` (funcionalidade/tela), `fix` (correção), `test` (testes), `docs` (documentação), `chore` (configuração e arquivos de apoio) e `refactor` (reorganização sem mudar o comportamento). Exemplos: `feat: telas 01-12 fiéis ao protótipo do Figma` e `fix: barra inferior não duplica a Home`.
+- **Modelos e ids (11/11/2026).** `Crianca` tem `id` (`c0` a `c10` no mock) e `Avaliacao` guarda `criancaId`. Busque sempre por id: `MockData.criancaPorId(id)`, `MockData.avaliacoesDe(criancaId)` (da mais recente para a mais antiga) e `MockData.ultimaAvaliacaoDe(criancaId)`. Nunca busque por nome. As listas do mock são imutáveis; quando for preciso salvar, use os repositórios (back-end), não `MockData.criancas.add`.
+- **Datas.** `cadastradoEm`, `nascimento` (pode ser nulo: "Não informado") e `Avaliacao.data` são `DateTime` local. Datas sem hora (nascimento, cadastro) devem ser gravadas no Firestore como texto `aaaa-mm-dd` ou ao meio-dia, nunca à meia-noite UTC, para não aparecer o dia anterior no fuso de Brasília.
+- **Formatação.** Use só `lib/utils/formatters.dart`: `formatarData`, `formatarDataHora`, `formatarDecimal`, `formatarNumero`, `formatarPeso`, `formatarAltura`, `idadeEmMeses` e `formatarIdade`. Abaixo de 24 meses a idade fica só em meses ("18 meses"), como na caderneta e nas curvas da OMS.
+- **Navegação entre telas.** Para a task da Lorena e os repositórios, a recomendação é passar o `id` da criança como argumento da rota, e não o objeto `Crianca` inteiro.
 - **Arquivos ignorados pelo Git:** `.claude/`, `CLAUDE.md` e `CLAUDE.local.md` são locais de cada integrante. O contexto compartilhado fica **neste arquivo**.
 
 ## Pendências conhecidas
@@ -114,11 +118,11 @@ Encontradas na revisão de 10/11/2026 e ainda não corrigidas. Ao corrigir uma, 
 - [ ] O mock contradiz a regra provisória `peso < 10 → desnutrição`: a criança de 9,8 kg aparece como "Normal". A curva mostra 82 cm e o mock tem 85 cm, e os dados da curva estão fixos.
 - [ ] "Editar dados" do Perfil tem `onPressed: () {}`, então o botão parece ativo e não faz nada.
 - [x] No cadastro, o nascimento usa DatePicker, o sexo inicia sem seleção e os CPFs têm máscara e validação dos dígitos verificadores.
-- [ ] Os modelos não têm `id`, as datas são `String` e a busca de avaliações é feita por nome.
+- [x] Os modelos não têm `id`, as datas são `String` e a busca de avaliações é feita por nome. Corrigido em 11/11/2026.
 - [ ] O "Alto Contraste" quase não muda nada, porque as telas usam `AppColors` e cores fixas direto, sem passar pelo `Theme`.
 - [x] Localização `pt_BR` configurada; o DatePicker aparece em Português do Brasil.
 - [ ] A borda dos campos tem contraste de 1,35:1 e o WCAG pede 3:1. Há fontes de 9 a 11 px.
-- [ ] A formatação de número e de data está duplicada em várias telas.
+- [x] A formatação de número e de data está duplicada em várias telas. Corrigido em 11/11/2026 (`lib/utils/formatters.dart`).
 - [ ] Faltam testes de login, recuperação de senha, cadastro, lista, barra inferior e histórico.
 
 ## Divisão de tarefas — front-end (a partir de 10/11/2026)
@@ -256,6 +260,9 @@ git merge develop
 - Uma branch por task. A task fácil e a difícil ficam em branches separadas.
 - Antes de começar, faça commit ou guarde o que estiver pendente. Evite deixar `git stash` esquecido: um stash antigo causou um conflito no `docs/requisitos.md` em 10/11/2026.
 - Não suba arquivos gerados (`build/`, `.dart_tool/`), que o `.gitignore` já ignora.
+- **Confira o `base` do PR antes de criar.** Ele tem que ser `develop`. Em 11/11/2026 um PR foi mergeado na `main` por engano.
+- **Nunca use o botão "Revert" do GitHub num merge.** Em 11/11/2026, reverter um merge na `main` apagou o app inteiro, e isso entrou na `develop`. Se algo entrou errado, peça ajuda antes.
+- Se o `flutter pub get` mudar o `pubspec.lock` ou os arquivos `generated_plugin...` sem você ter mexido em dependências, não commite: é diferença de versão do Flutter. Desfaça com `git restore`.
 
 ---
 
@@ -277,6 +284,8 @@ Regras: uma linha por pedido, a mais recente no fim. Copie o prompt **exatamente
 | 11/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "sim, pode fazer chame o time" | Criou a branch `fix/barra-inferior-home` e chamou os agentes frontend, testes e revisor. Início agora volta à Home que já está na pilha (`popUntil`) e recria a Home se ela não estiver lá (`lib/widgets/bottom_nav.dart`). Criou `test/bottom_nav_test.dart` com 6 testes de navegação. `flutter analyze` sem problemas e 43 testes passando. Marcou a pendência como corrigida. |
 | 11/11/2026 | Larissa Barbosa dos Santos | Codex (GPT-5.6) | "No campo do CPF, deixar a máscara funcionando, para que ao digitar o número, eles fiquem no formato de CPF. Confirme se máscara e dígito verificador do CPF está funcionando. O calendário está em inglês, deixar em Português Brasileiro. E se atentar a máscara do número telefônico também, para que ele não adicione número a mais, pra seguir conforme a formatação." | Implementou máscaras de CPF e telefone com limite de 11 dígitos, validação dos dígitos verificadores do CPF e localização `pt_BR`; adicionou testes de máscara, limites, CPF válido/inválido e locale do calendário. `dart analyze` sem problemas e 43 testes passando (`pubspec.yaml`, `pubspec.lock`, `lib/main.dart`, `lib/widgets/common.dart`, `lib/utils/input_formatters.dart`, `lib/services/validadores.dart`, `lib/screens/avaliacao/cadastro_crianca_screen.dart`, `test/cadastro_crianca_test.dart`). |
 | 11/11/2026 | Alexandre Afonso Silva Virgens | Claude Code (Claude Sonnet 5.5) | "Leia o CONTEXTO_IA.md na raiz do projeto antes de começar e siga as regras dele. Sou o Alexandre Afonso Silva Virgens e minha task fácil de hoje (11/11) é: adicionar flutter_localizations com pt_BR no main.dart para o DatePicker aparecer em português, ajustar o teste que procura 'OK' (test/registro_medidas_test.dart) e escrever testes da recuperação de senha (e-mail inválido e senhas que não conferem). Trabalhe só no projeto local, numa branch nova a partir da develop, sem fazer push. Rode flutter analyze e flutter test, faça o commit em português no padrão tipo: descrição e registre meu prompt na tabela do CONTEXTO_IA.md. Não versione CLAUDE.md nem variáveis de ambiente." | Branch `feat/localizacao-pt-br`. Adicionou `flutter_localizations` com `pt_BR` em `pubspec.yaml`, `pubspec.lock` e `lib/main.dart` (locale, delegates e supportedLocales). Em `test/registro_medidas_test.dart`, o MaterialApp passou a usar `pt_BR` (o botão do DatePicker continua `'OK'` em português). Criou `test/recuperacao_senha_test.dart` com testes da 02A (campo vazio bloqueia, e-mail válido avança) e da 02C (senhas que não conferem, senha curta, senhas iguais). `flutter analyze` sem problemas e 43 testes passando. A 02A só valida "campo obrigatório" (não checa o formato do e-mail). |
+| 11/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "ja fiz o merge na devolop. vamos fazer o pr da brach cadastro crianca vakudacoes" | Descobriu que a `develop` tinha perdido o app (o PR #1 foi mergeado na `main` e revertido pelo GitHub, e o revert entrou na `develop` pelo PR #3). Guiou a restauração (`fix/restaura-develop` e PR #6), resolveu os conflitos do `CONTEXTO_IA.md` nos PRs #2 (cadastro) e #4 (localização) e tirou a configuração `pt_BR` duplicada do `lib/main.dart` no #4. Todos os commits foram feitos pelo integrante. |
+| 11/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "chame o time e pode começar" | Branch `feat/modelos-id-datetime`, com os agentes frontend, testes e revisor. `id` em `Crianca`, `criancaId` em `Avaliacao`, datas em `DateTime`, busca por id e listas imutáveis no mock (`lib/data/models.dart`, `lib/data/mock_data.dart`). Criou `lib/utils/formatters.dart` e trocou a formatação duplicada em 7 telas. Testes novos: `test/formatters_test.dart` e `test/mock_data_test.dart`. `flutter analyze` sem problemas e 89 testes passando. Atualizou "Decisões e cuidados" e as pendências. |
 
 ### Prompts longos
 

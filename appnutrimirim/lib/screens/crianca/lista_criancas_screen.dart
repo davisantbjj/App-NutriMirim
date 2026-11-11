@@ -6,6 +6,7 @@ import '../../routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
+import '../../utils/formatters.dart';
 
 /// TELA 12 — Cadastro de Crianças (lista com busca e filtro).
 class ListaCriancasScreen extends StatefulWidget {
@@ -146,7 +147,7 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Cadastrado(a) em : ${c.cadastradoEm}',
+                            'Cadastrado(a) em : ${formatarData(c.cadastradoEm)}',
                             style: const TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 12,
