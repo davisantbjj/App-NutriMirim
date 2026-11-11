@@ -54,36 +54,3 @@ O NutriMirim é um projeto voltado para a vigilância nutricional infantil, dese
 | Larissa Barbosa dos Santos | Telas: Nova avaliação 04 - Cadastro da criança 05 - Registro de Medidas 06; Baixa fidelidade e justificativas.md | 
 | Lorena Reis Santos | Telas: Dados da criança 10 - Perfil Profissional 11 - Cadastro de Crianças 12; Apresentação | 
 | Talita Santos das Virgens |Telas: Resultado 07 - Curva de Crescimento 08 - Histórico 09; Atualizar o README.md e o CHANGELOG.md| 
-
-## DESENVOLVIMENTO DO APLICATIVO EM FLUTTER - 04/11/2026
-
-| Integrante | Responsabilidade |
-| --- | --- |
-| Davi Santana Lóz | Criação do projeto Flutter (`appnutrimirim/`) e importação do protótipo do Figma para o código |
-
-## PLANEJAMENTO DO DESENVOLVIMENTO - 10/11/2026
-
-| Integrante | Responsabilidade |
-| --- | --- |
-| Davi Santana Lóz | Revisão geral do código; criação do `CONTEXTO_IA.md` (contexto compartilhado para IAs, registro de prompts, padrão de commits e fluxo de branches); divisão das tasks de front-end e back-end; cronograma de entregas |
-
-As tasks de cada integrante, o cronograma e o fluxo de branches estão detalhados no [`CONTEXTO_IA.md`](CONTEXTO_IA.md).
-
-### Cronograma de entregas (às quartas-feiras; a final é na terça)
-
-| Entrega | Data | Conteúdo |
-| --- | --- | --- |
-| 1 | 11/11/2026 | Tasks fáceis do front-end |
-| 2 | 18/11/2026 | Modelos de dados e tasks fáceis do back-end |
-| 3 | 25/11/2026 | Tasks difíceis do front-end e repositórios |
-| 4 | 01/12/2026 | Tasks difíceis do back-end, integração e entrega final do app |
-
-## Como rodar o aplicativo
-
-Dentro da pasta `appnutrimirim/`:
-
-```bash
-flutter pub get
-flutter run
-flutter test
-```
