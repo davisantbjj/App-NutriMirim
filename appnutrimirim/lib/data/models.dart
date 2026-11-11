@@ -57,38 +57,44 @@ class Responsavel {
 }
 
 class Crianca {
-  const Crianca({
+  Crianca({
+    required this.id,
     required this.nome,
     required this.sexo,
     required this.bairro,
     required this.cadastradoEm,
     this.endereco = '',
     this.ubs = 'UBS Jardim das Flores',
-    this.nascimento = '',
+    this.nascimento,
     this.responsavel,
   });
 
+  /// Identificador estável (no back-end será o id do registro).
+  final String id;
   final String nome;
   final Sexo sexo;
   final String bairro;
-  final String cadastradoEm;
+  final DateTime cadastradoEm;
   final String endereco;
   final String ubs;
-  final String nascimento;
+
+  /// Nulo quando a data de nascimento não foi informada.
+  final DateTime? nascimento;
   final Responsavel? responsavel;
 }
 
 class Avaliacao {
-  const Avaliacao({
-    required this.nomeCrianca,
+  Avaliacao({
+    required this.criancaId,
     required this.data,
     required this.pesoKg,
     required this.alturaCm,
     required this.situacao,
   });
 
-  final String nomeCrianca;
-  final String data;
+  /// [Crianca.id] da criança avaliada.
+  final String criancaId;
+  final DateTime data;
   final double pesoKg;
   final double alturaCm;
   final Situacao situacao;

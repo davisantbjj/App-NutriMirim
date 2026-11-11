@@ -6,6 +6,7 @@ import '../../routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
+import '../../utils/formatters.dart';
 
 /// TELA 10 — Dados da criança.
 class DadosCriancaScreen extends StatelessWidget {
@@ -16,7 +17,7 @@ class DadosCriancaScreen extends StatelessWidget {
     final arg = ModalRoute.of(context)?.settings.arguments as Crianca?;
     final c = arg ?? MockData.criancaDestaque;
     final r = c.responsavel;
-    final ultima = MockData.ultimaAvaliacaoDe(c.nome);
+    final ultima = MockData.ultimaAvaliacaoDe(c.id);
 
     return Scaffold(
       appBar: const BackAppBar(title: 'Dados da criança'),
@@ -43,11 +44,15 @@ class DadosCriancaScreen extends StatelessWidget {
                 InfoRow('UBS Vinculada', c.ubs),
                 InfoRow(
                   'Data de nascimento',
-                  c.nascimento.isEmpty ? 'Não informado' : c.nascimento,
+                  c.nascimento == null
+                      ? 'Não informado'
+                      : formatarData(c.nascimento!),
                 ),
                 InfoRow(
                   'Última avaliação',
-                  ultima?.data ?? 'Sem avaliações registradas',
+                  ultima == null
+                      ? 'Sem avaliações registradas'
+                      : formatarData(ultima.data),
                 ),
               ],
             ),
@@ -69,9 +74,8 @@ class DadosCriancaScreen extends StatelessWidget {
             )
           else
             LastEvaluationCard(
-              data: ultima.data,
-              peso:
-                  '${ultima.pesoKg.toStringAsFixed(1).replaceAll('.', ',')} kg',
+              data: formatarData(ultima.data),
+              peso: formatarPeso(ultima.pesoKg),
               situacao: ultima.situacao,
               footer: TextButton(
                 onPressed: () => Navigator.pushNamed(context, Routes.historico),

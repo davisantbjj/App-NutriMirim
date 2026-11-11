@@ -6,6 +6,7 @@ import '../../services/validadores.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/input_formatters.dart';
 import '../../widgets/common.dart';
+import '../../utils/formatters.dart';
 
 /// TELA 05 — Cadastro da Criança (ficha de identificação).
 class CadastroCriancaScreen extends StatefulWidget {
@@ -44,10 +45,7 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
     );
     if (!mounted || data == null) return;
 
-    _nascimento.text =
-        '${data.day.toString().padLeft(2, '0')}/'
-        '${data.month.toString().padLeft(2, '0')}/'
-        '${data.year}';
+    _nascimento.text = formatarData(data);
   }
 
   @override
