@@ -6,6 +6,7 @@ import '../routes.dart';
 import '../theme/app_colors.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
+import '../utils/formatters.dart';
 
 /// TELA 09 — Histórico de avaliações (mais recente primeiro).
 class HistoricoScreen extends StatefulWidget {
@@ -44,21 +45,21 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            a.nomeCrianca,
+                            MockData.criancaPorId(a.criancaId)?.nome ?? '',
                             style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
                           ),
                           Text(
-                            a.data,
+                            formatarData(a.data),
                             style: const TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 12,
                             ),
                           ),
                           Text(
-                            'Peso: ${_fmt(a.pesoKg)} kg  |  Altura: ${_fmt(a.alturaCm)} cm',
+                            'Peso: ${formatarNumero(a.pesoKg)} kg  |  Altura: ${formatarAltura(a.alturaCm)}',
                             style: const TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 11,
@@ -82,10 +83,6 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
       bottomNavigationBar: const AppBottomNav(current: NavTab.historico),
     );
   }
-
-  String _fmt(double v) => v == v.roundToDouble()
-      ? v.toStringAsFixed(0)
-      : v.toStringAsFixed(1).replaceAll('.', ',');
 
   Widget _chip(String label, Situacao? s) {
     final selected = _filtro == s;

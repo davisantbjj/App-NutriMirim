@@ -5,6 +5,7 @@ import '../routes.dart';
 import '../theme/app_colors.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
+import '../utils/formatters.dart';
 
 /// TELA 11 — Perfil Profissional.
 class PerfilScreen extends StatefulWidget {
@@ -16,15 +17,10 @@ class PerfilScreen extends StatefulWidget {
 
 class _PerfilScreenState extends State<PerfilScreen> {
   bool _notificacoes = true;
-  String _ultimaSync = '28/09/2026 às 08:42';
+  String _ultimaSync = formatarDataHora(DateTime(2026, 9, 28, 8, 42));
 
   void _sincronizar() {
-    final n = DateTime.now();
-    String two(int v) => v.toString().padLeft(2, '0');
-    setState(
-      () => _ultimaSync =
-          '${two(n.day)}/${two(n.month)}/${n.year} às ${two(n.hour)}:${two(n.minute)}',
-    );
+    setState(() => _ultimaSync = formatarDataHora(DateTime.now()));
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Dados sincronizados.')));

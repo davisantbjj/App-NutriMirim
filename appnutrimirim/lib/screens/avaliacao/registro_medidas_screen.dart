@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/mock_data.dart';
 import '../../routes.dart';
 import '../../widgets/common.dart';
+import '../../utils/formatters.dart';
 
 /// TELA 06 — Registro de Medidas antropométricas.
 class RegistroMedidasScreen extends StatefulWidget {
@@ -43,13 +44,10 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
     final n = _parse(v);
     if (n == null) return 'Informe um valor válido';
     if (n < min || n > max) {
-      return 'Informe entre ${_fmt(min)} e ${_fmt(max)} $unidade';
+      return 'Informe entre ${formatarNumero(min)} e ${formatarNumero(max)} $unidade';
     }
     return null;
   }
-
-  String _fmt(double v) =>
-      v.toString().replaceAll(RegExp(r'\.0$'), '').replaceAll('.', ',');
 
   String? _validarPeso(String? v) =>
       _numero(v, min: 0.5, max: 60, unidade: 'kg');
@@ -78,8 +76,7 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
     if (!mounted) return;
     if (d != null) {
       _dataEscolhida = d;
-      _data.text =
-          '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+      _data.text = formatarData(d);
       // Revalida só este campo para limpar o erro anterior.
       _dataKey.currentState?.validate();
     }
