@@ -7,6 +7,8 @@ import 'package:appnutrimirim/data/models.dart';
 import 'package:appnutrimirim/routes.dart';
 import 'package:appnutrimirim/screens/avaliacao/resultado_screen.dart';
 import 'package:appnutrimirim/screens/crianca/dados_crianca_screen.dart';
+import 'package:appnutrimirim/screens/crianca/lista_criancas_screen.dart';
+import 'package:appnutrimirim/screens/perfil_screen.dart';
 import 'package:appnutrimirim/theme/app_theme.dart';
 
 double _contraste(Color a, Color b) {
@@ -69,6 +71,35 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Não informado', skipOffstage: false), findsNothing);
+  });
+
+  testWidgets('Busca na lista encontra nomes ignorando acentos e caixa', (
+    t,
+  ) async {
+    await _ir(t, const ListaCriancasScreen());
+
+    await t.enterText(find.byType(TextField), 'joao');
+    await t.pumpAndSettle();
+    expect(find.text('João Rocha'), findsOneWidget);
+
+    await t.enterText(find.byType(TextField), 'JOÃO');
+    await t.pumpAndSettle();
+    expect(find.text('João Rocha'), findsOneWidget);
+  });
+
+  testWidgets('Editar dados no Perfil fica indisponível e sinalizado', (
+    t,
+  ) async {
+    await _ir(t, const PerfilScreen());
+
+    expect(find.text('Editar dados (em breve)'), findsOneWidget);
+    final botao = t.widget<TextButton>(
+      find.ancestor(
+        of: find.text('Editar dados (em breve)'),
+        matching: find.byType(TextButton),
+      ),
+    );
+    expect(botao.onPressed, isNull);
   });
 
   group('contraste de Situacao.textColor >= 4.5', () {

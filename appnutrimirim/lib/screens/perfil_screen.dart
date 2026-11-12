@@ -62,8 +62,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
           const InfoRow('Telefone', '(79) 12345-6789'),
           Center(
             child: TextButton(
-              onPressed: () {},
-              child: const Text('Editar dados'),
+              onPressed: null,
+              child: const Text('Editar dados (em breve)'),
             ),
           ),
           const SizedBox(height: 20),
