@@ -19,6 +19,40 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
   String _busca = '';
   Sexo? _sexo;
 
+  String _normalizarTexto(String texto) {
+    const caracteresAcentuados = {
+      'á': 'a',
+      'à': 'a',
+      'â': 'a',
+      'ã': 'a',
+      'ä': 'a',
+      'é': 'e',
+      'è': 'e',
+      'ê': 'e',
+      'ë': 'e',
+      'í': 'i',
+      'ì': 'i',
+      'î': 'i',
+      'ï': 'i',
+      'ó': 'o',
+      'ò': 'o',
+      'ô': 'o',
+      'õ': 'o',
+      'ö': 'o',
+      'ú': 'u',
+      'ù': 'u',
+      'û': 'u',
+      'ü': 'u',
+      'ç': 'c',
+      'ñ': 'n',
+    };
+
+    return texto.toLowerCase().replaceAllMapped(
+      RegExp('[${caracteresAcentuados.keys.join()}]'),
+      (match) => caracteresAcentuados[match[0]] ?? match[0]!,
+    );
+  }
+
   Future<void> _filtrar() async {
     final escolha = await showModalBottomSheet<Object>(
       context: context,
@@ -59,7 +93,7 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
     final lista = MockData.criancas
         .where(
           (c) =>
-              c.nome.toLowerCase().contains(_busca.toLowerCase()) &&
+              _normalizarTexto(c.nome).contains(_normalizarTexto(_busca)) &&
               (_sexo == null || c.sexo == _sexo),
         )
         .toList();

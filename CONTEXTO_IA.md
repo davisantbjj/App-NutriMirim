@@ -112,7 +112,7 @@ Encontradas na revisão de 10/11/2026 e ainda não corrigidas. Ao corrigir uma, 
 - [ ] Tocar num item do Histórico sempre abre a mesma criança, porque nenhum argumento é passado (`lib/screens/historico_screen.dart:39`).
 - [ ] As telas de dados, registro, curva e histórico não passam a criança adiante, e "Editar dados" abre o cadastro vazio (`dados_crianca_screen.dart`).
 - [ ] O mock contradiz a regra provisória `peso < 10 → desnutrição`: a criança de 9,8 kg aparece como "Normal". A curva mostra 82 cm e o mock tem 85 cm, e os dados da curva estão fixos.
-- [ ] "Editar dados" do Perfil tem `onPressed: () {}`, então o botão parece ativo e não faz nada.
+- [x] "Editar dados" do Perfil foi desabilitado e sinalizado como "em breve".
 - [ ] No cadastro, o nascimento é texto livre, o CPF não tem máscara nem validação e o sexo já vem marcado.
 - [ ] Os modelos não têm `id`, as datas são `String` e a busca de avaliações é feita por nome.
 - [ ] O "Alto Contraste" quase não muda nada, porque as telas usam `AppColors` e cores fixas direto, sem passar pelo `Theme`.
@@ -273,6 +273,10 @@ Regras: uma linha por pedido, a mais recente no fim. Copie o prompt **exatamente
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "a primeira entrega tem que ser amanha" | Adicionou a Entrega 1 em 11/11 com as tasks fáceis do front-end e moveu a task fácil de back-end do Davi para a semana de 18/11. |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "atualize o readme e changelog do que foi feito na semana passda e hoje" | Atualizou `README.md` (desenvolvimento de 04/11, planejamento de 10/11, cronograma e como rodar) e `CHANGELOG.md` (registros de 04/11 e 10/11). |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "entrefa final do app é dia 1" | Mudou a entrega final de qua 02/12 para ter 01/12 no cronograma do `CONTEXTO_IA.md`, no `README.md` e no `CHANGELOG.md`. |
+| 11/11/2026 | Não informado | Copilot SDK in VS Code | "leia o contexto_IA.md" | Leu o contexto do projeto; registrou este pedido em `CONTEXTO_IA.md`. |
+| 11/11/2026 | Lorena Reis Santos | Copilot SDK in VS Code | "Identificação! Meu nome é Lorena Reis Santos e minha tarefa é criar as telas de Dados da criança, perfil do profissional e lista de crianças." | Registrou a identificação da integrante e sua área de atuação neste histórico. |
+| 11/11/2026 | Lorena Reis Santos | Copilot SDK in VS Code | "No Perfil: desabilitar o "Editar dados" ou mostrar "Em breve". Na Lista: fazer a busca ignorar acentos ("joao" encontra "João"). Escrever testes da busca." | Desabilitou e sinalizou o botão de edição do Perfil; fez a busca da Lista ignorar acentos e caixa e adicionou testes para ambos em `perfil_screen.dart`, `lista_criancas_screen.dart` e `telas_test.dart`. |
+| 11/11/2026 | Lorena Reis Santos | Copilot SDK in VS Code | "Na Lista: fazer a busca ignorar acentos ("joao" encontra "João")." | Confirmou que a busca sem acentos já está implementada e coberta por teste em `lista_criancas_screen.dart` e `telas_test.dart`; nenhuma alteração adicional de código foi necessária. |
 
 ### Prompts longos
 
