@@ -1,0 +1,501 @@
+rules_version = '2';
+
+// Regras de segurança do NutriMirim (Cloud Firestore).
+// Documentação dos campos e decisões: docs/firestore.md
+//
+// Princípios (LGPD):
+//  - Tudo é negado por padrão; só entra quem está logado, tem perfil em
+//    profissionais/{uid} e está ativo.
+//  - Papéis: master (responsável pelo app), acs, medico, nutricionista.
+//    acs, medico e nutricionista têm as mesmas permissões, só nas UBS da
+//    sua lista (perfil.ubsIds). O master acessa todas as UBS.
+//  - Cada criança/avaliação tem um único ubsId, que precisa estar em
+//    perfil.ubsIds (ou o usuário ser master).
+//  - Perfis e UBS são criados/alterados só pelo master (ou console/admin).
+//  - Nada é apagado pelo app. Toda correção/edição grava um log imutável
+//    em .../alteracoes/{versao}, no mesmo lote da alteração (RNF11).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------
+    // Funções auxiliares
+    // ---------------------------------------------------------------
+
+    function logado() {
+      return request.auth != null;
+    }
+
+    function perfilExiste() {
+      return logado()
+        && exists(/databases/$(database)/documents/profissionais/$(request.auth.uid));
+    }
+
+    // Perfil do profissional logado (o get() repetido conta 1 acesso só).
+    function perfil() {
+      return get(/databases/$(database)/documents/profissionais/$(request.auth.uid)).data;
+    }
+
+    // Profissional com perfil cadastrado e ativo.
+    function ativo() {
+      return perfilExiste() && perfil().ativo == true;
+    }
+
+    // Master ativo: responsável pelo app, acessa todas as UBS.
+    function master() {
+      return ativo() && perfil().papel == 'master';
+    }
+
+    // O ubsId está na lista de UBS do profissional (ou ele é master).
+    function daMinhaUbs(ubsId) {
+      return ativo() && (perfil().papel == 'master' || ubsId in perfil().ubsIds);
+    }
+
+    // A UBS existe e está ativa (não se cadastra em UBS desativada).
+    function ubsAtiva(ubsId) {
+      return exists(/databases/$(database)/documents/ubs/$(ubsId))
+        && get(/databases/$(database)/documents/ubs/$(ubsId)).data.ativa == true;
+    }
+
+    // Texto com tamanho entre min e max.
+    function texto(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
+    }
+
+    // Campo opcional: ausente ou nulo.
+    function ausenteOuNulo(d, campo) {
+      return !(campo in d) || d[campo] == null;
+    }
+
+    // Data de hoje (UTC) no formato aaaa-mm-dd.
+    function hoje() {
+      return string(request.time.year()) + '-'
+        + (request.time.month() < 10 ? '0' : '') + string(request.time.month()) + '-'
+        + (request.time.day() < 10 ? '0' : '') + string(request.time.day());
+    }
+
+    // Data sem hora aaaa-mm-dd (ano 2000-2099, mês 01-12, dia 01-31).
+    function dataTexto(v) {
+      return v is string
+        && v.matches('^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$');
+    }
+
+    // Data sem hora que não está no futuro.
+    function dataPassada(v) {
+      return dataTexto(v) && v <= hoje();
+    }
+
+    function emailValido(v) {
+      return v is string && v.size() <= 160 && v.matches('^[^@ ]+@[^@ ]+[.][^@ ]+$');
+    }
+
+    function situacaoValida(v) {
+      return v in ['normal', 'atencao', 'risco', 'abaixo'];
+    }
+
+    // Faixas fisiológicas básicas, iguais às do app (RF02).
+    function pesoValido(v) {
+      return v is number && v >= 0.5 && v <= 60;
+    }
+
+    function alturaValida(v) {
+      return v is number && v >= 40 && v <= 130;
+    }
+
+    // ---------------------------------------------------------------
+    // ubs/{id}
+    // ---------------------------------------------------------------
+    match /ubs/{id} {
+
+      function ubsValida(d) {
+        return d.keys().hasAll(['nome', 'municipio', 'ativa', 'criadoEm', 'atualizadoEm'])
+          && d.keys().hasOnly(['nome', 'endereco', 'municipio', 'ativa', 'criadoEm', 'atualizadoEm'])
+          && texto(d.nome, 2, 120)
+          && texto(d.municipio, 2, 80)
+          && (!('endereco' in d) || texto(d.endereco, 0, 200))
+          && d.ativa is bool
+          && d.criadoEm is timestamp
+          && d.atualizadoEm is timestamp;
+      }
+
+      // Master lê todas; os demais só as UBS da própria lista.
+      allow read: if master() || (ativo() && id in perfil().ubsIds);
+
+      allow create: if master()
+        && ubsValida(request.resource.data)
+        && request.resource.data.criadoEm == request.time
+        && request.resource.data.atualizadoEm == request.time;
+
+      allow update: if master()
+        && ubsValida(request.resource.data)
+        && request.resource.data.criadoEm == resource.data.criadoEm
+        && request.resource.data.atualizadoEm == request.time;
+
+      // Sem exclusão: desative com ativa = false.
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------
+    // profissionais/{uid}
+    // ---------------------------------------------------------------
+    match /profissionais/{uid} {
+
+      function perfilValido(d) {
+        return d.keys().hasAll(['nome', 'email', 'papel', 'ubsIds', 'ativo'])
+          && d.keys().hasOnly(['nome', 'email', 'papel', 'ubsIds', 'microarea', 'ativo'])
+          && texto(d.nome, 2, 120)
+          && emailValido(d.email)
+          && d.papel in ['master', 'acs', 'medico', 'nutricionista']
+          && d.ubsIds is list
+          && d.ubsIds.size() <= 20
+          && (d.papel == 'master' || d.ubsIds.size() >= 1)
+          && (ausenteOuNulo(d, 'microarea') || texto(d.microarea, 1, 30))
+          && d.ativo is bool;
+      }
+
+      // Só o próprio profissional lê o seu perfil; o master lê todos.
+      allow read: if logado() && (request.auth.uid == uid || master());
+
+      // Só o master cadastra profissionais.
+      allow create: if master() && perfilValido(request.resource.data);
+
+      // Master edita qualquer perfil, mas não se desativa nem perde o
+      // próprio papel de master. Os demais mudam só a própria microárea
+      // (nome, e-mail, papel, ubsIds e ativo só pelo master).
+      allow update: if
+        (master()
+          && perfilValido(request.resource.data)
+          && (uid != request.auth.uid
+              || (request.resource.data.papel == 'master'
+                  && request.resource.data.ativo == true)))
+        || (ativo() && request.auth.uid == uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['microarea'])
+          && (ausenteOuNulo(request.resource.data, 'microarea')
+              || texto(request.resource.data.microarea, 1, 30)));
+
+      // Sem exclusão: desative com ativo = false.
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------
+    // criancas/{id}
+    // ---------------------------------------------------------------
+    match /criancas/{id} {
+
+      function responsavelValido(r) {
+        return r is map
+          && r.keys().hasOnly(['nome', 'cpf', 'telefone', 'email'])
+          && texto(r.nome, 2, 120)
+          && (ausenteOuNulo(r, 'cpf')
+              || (r.cpf is string && r.cpf.matches('^[0-9]{11}$')))
+          && (ausenteOuNulo(r, 'telefone')
+              || (r.telefone is string && r.telefone.matches('^[0-9]{10,11}$')))
+          && (ausenteOuNulo(r, 'email') || emailValido(r.email));
+      }
+
+      // Campos e tipos permitidos (vale para create e update).
+      function criancaValida(d) {
+        return d.keys().hasAll([
+            'ubsId', 'nome', 'nomeBusca', 'sexo', 'cadastradoEm', 'ativa',
+            'versao', 'criadoPor', 'criadoEm', 'atualizadoEm'
+          ])
+          && d.keys().hasOnly([
+            'ubsId', 'nome', 'nomeBusca', 'sexo', 'bairro', 'endereco',
+            'nascimento', 'cadastradoEm', 'responsavel', 'ativa',
+            'ultimaSituacao', 'ultimaAvaliacaoEm', 'versao',
+            'criadoPor', 'criadoEm', 'atualizadoEm',
+            'alteradoPor', 'alteradoEm', 'motivoAlteracao'
+          ])
+          && texto(d.ubsId, 1, 60)
+          && texto(d.nome, 2, 120)
+          && texto(d.nomeBusca, 2, 120)
+          && d.nomeBusca == d.nomeBusca.lower()
+          && d.sexo in ['masculino', 'feminino']
+          && (!('bairro' in d) || texto(d.bairro, 0, 80))
+          && (!('endereco' in d) || texto(d.endereco, 0, 200))
+          && (ausenteOuNulo(d, 'nascimento') || dataPassada(d.nascimento))
+          && dataPassada(d.cadastradoEm)
+          && (ausenteOuNulo(d, 'responsavel') || responsavelValido(d.responsavel))
+          && d.ativa is bool
+          && (!('ultimaSituacao' in d) || situacaoValida(d.ultimaSituacao))
+          && (!('ultimaAvaliacaoEm' in d) || d.ultimaAvaliacaoEm is timestamp)
+          && d.versao is int
+          && d.versao >= 0
+          && d.criadoPor is string
+          && d.criadoEm is timestamp
+          && d.atualizadoEm is timestamp;
+      }
+
+      function caminhoLog(versao) {
+        return /databases/$(database)/documents/criancas/$(id)/alteracoes/$(string(versao));
+      }
+
+      // Lista e leitura: só da própria UBS (a consulta precisa filtrar por
+      // ubsId == ou in as UBS do profissional). Master lê tudo.
+      allow read: if master() || daMinhaUbs(resource.data.ubsId);
+
+      allow create: if daMinhaUbs(request.resource.data.ubsId)
+        && ubsAtiva(request.resource.data.ubsId)
+        && criancaValida(request.resource.data)
+        && request.resource.data.keys().hasOnly([
+            'ubsId', 'nome', 'nomeBusca', 'sexo', 'bairro', 'endereco',
+            'nascimento', 'cadastradoEm', 'responsavel', 'ativa', 'versao',
+            'criadoPor', 'criadoEm', 'atualizadoEm'
+          ])
+        && request.resource.data.criadoPor == request.auth.uid
+        && request.resource.data.criadoEm == request.time
+        && request.resource.data.atualizadoEm == request.time
+        && request.resource.data.ativa == true
+        && request.resource.data.versao == 0;
+
+      // Edição de dados e desativação: exige versão +1, motivo e o log
+      // criado no mesmo lote (RNF11). A UBS e a origem não mudam.
+      // Atualização só do resumo (última avaliação): sem motivo nem log,
+      // pode mudar apenas ultimaSituacao, ultimaAvaliacaoEm e atualizadoEm.
+      allow update: if daMinhaUbs(resource.data.ubsId)
+        && criancaValida(request.resource.data)
+        && (
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'nome', 'nomeBusca', 'sexo', 'bairro', 'endereco', 'nascimento',
+              'responsavel', 'ativa', 'versao', 'atualizadoEm',
+              'alteradoPor', 'alteradoEm', 'motivoAlteracao'
+            ])
+            && request.resource.data.versao == resource.data.get('versao', 0) + 1
+            && texto(request.resource.data.motivoAlteracao, 3, 200)
+            && request.resource.data.alteradoPor == request.auth.uid
+            && request.resource.data.alteradoEm == request.time
+            && request.resource.data.atualizadoEm == request.time
+            && !exists(caminhoLog(request.resource.data.versao))
+            && existsAfter(caminhoLog(request.resource.data.versao)))
+          ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'ultimaSituacao', 'ultimaAvaliacaoEm', 'atualizadoEm'
+            ])
+            && resource.data.ativa == true
+            && request.resource.data.atualizadoEm == request.time)
+        );
+
+      // Sem exclusão física: use ativa = false (com motivo e log).
+      allow delete: if false;
+
+      // Log imutável de edições da criança (RNF11): nome, responsável e
+      // ativa anteriores, conferidos com o documento real (get = antes do
+      // lote; getAfter = depois).
+      match /alteracoes/{altId} {
+
+        function logCriancaValido(log) {
+          let antes = get(/databases/$(database)/documents/criancas/$(id)).data;
+          let depois = getAfter(/databases/$(database)/documents/criancas/$(id)).data;
+          return daMinhaUbs(antes.ubsId)
+            && log.keys().hasOnly([
+                'alteradoPor', 'alteradoEm', 'motivo', 'versao',
+                'nomeAnterior', 'responsavelAnterior', 'ativaAnterior',
+                'nascimentoAnterior', 'sexoAnterior', 'bairroAnterior', 'enderecoAnterior'
+              ])
+            && log.keys().hasAll([
+                'alteradoPor', 'alteradoEm', 'motivo', 'versao',
+                'nomeAnterior', 'responsavelAnterior', 'ativaAnterior',
+                'nascimentoAnterior', 'sexoAnterior', 'bairroAnterior', 'enderecoAnterior'
+              ])
+            && depois.versao == antes.get('versao', 0) + 1
+            && altId == string(depois.versao)
+            && log.versao == depois.versao
+            && depois.alteradoPor == request.auth.uid
+            && depois.alteradoEm == request.time
+            && log.alteradoPor == request.auth.uid
+            && log.alteradoEm == request.time
+            && texto(log.motivo, 3, 200)
+            && log.motivo == depois.motivoAlteracao
+            && log.nomeAnterior == antes.nome
+            && log.ativaAnterior == antes.ativa
+            && log.responsavelAnterior == antes.get('responsavel', null)
+            && log.nascimentoAnterior == antes.get('nascimento', null)
+            && log.sexoAnterior == antes.sexo
+            && log.bairroAnterior == antes.get('bairro', null)
+            && log.enderecoAnterior == antes.get('endereco', null);
+        }
+
+        allow read: if master()
+          || daMinhaUbs(get(/databases/$(database)/documents/criancas/$(id)).data.ubsId);
+        allow create: if logCriancaValido(request.resource.data);
+        allow update, delete: if false;
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // avaliacoes/{id}
+    // ---------------------------------------------------------------
+    match /avaliacoes/{id} {
+
+      function indicadorValido(i) {
+        return i is map
+          && i.keys().hasOnly(['zScore', 'situacao'])
+          && i.keys().hasAll(['zScore', 'situacao'])
+          && i.zScore is number
+          && i.zScore >= -10 && i.zScore <= 10
+          && situacaoValida(i.situacao);
+      }
+
+      // Chaves fixas: pi (peso/idade), ei (estatura/idade), pe (peso/estatura),
+      // imci (IMC/idade). Pelo menos um indicador calculado.
+      function indicadoresValidos(m) {
+        return m is map
+          && m.keys().hasOnly(['pi', 'ei', 'pe', 'imci'])
+          && m.keys().size() >= 1
+          && (!('pi' in m) || indicadorValido(m.pi))
+          && (!('ei' in m) || indicadorValido(m.ei))
+          && (!('pe' in m) || indicadorValido(m.pe))
+          && (!('imci' in m) || indicadorValido(m.imci));
+      }
+
+      function avaliacaoValida(d) {
+        return d.keys().hasAll([
+            'ubsId', 'criancaId', 'profissionalId', 'profissionalNome', 'data',
+            'pesoKg', 'alturaCm', 'situacao', 'indicadores', 'desnutricao',
+            'versaoTabelaOms', 'excluida', 'versao', 'criadoEm', 'atualizadoEm'
+          ])
+          && d.keys().hasOnly([
+            'ubsId', 'criancaId', 'profissionalId', 'profissionalNome', 'microarea',
+            'data', 'pesoKg', 'alturaCm', 'tipoMedida', 'situacao', 'indicadores',
+            'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida',
+            'motivoExclusao', 'versao', 'criadoEm', 'atualizadoEm',
+            'alteradoPor', 'alteradoEm', 'motivoAlteracao'
+          ])
+          && texto(d.ubsId, 1, 60)
+          && texto(d.criancaId, 1, 60)
+          && d.profissionalId is string
+          && texto(d.profissionalNome, 2, 120)
+          && (ausenteOuNulo(d, 'microarea') || texto(d.microarea, 1, 30))
+          && d.data is timestamp
+          && d.data >= timestamp.date(2000, 1, 1)
+          && d.data <= request.time + duration.value(1, 'd')
+          && pesoValido(d.pesoKg)
+          && alturaValida(d.alturaCm)
+          && (ausenteOuNulo(d, 'tipoMedida') || d.tipoMedida in ['deitado', 'em_pe'])
+          && situacaoValida(d.situacao)
+          && indicadoresValidos(d.indicadores)
+          && d.desnutricao is bool
+          && texto(d.versaoTabelaOms, 1, 40)
+          && (ausenteOuNulo(d, 'retornoSugerido') || dataTexto(d.retornoSugerido))
+          && d.excluida is bool
+          && (d.excluida
+              ? texto(d.motivoExclusao, 3, 200)
+              : !('motivoExclusao' in d))
+          && d.versao is int
+          && d.versao >= 0
+          && d.criadoEm is timestamp
+          && d.atualizadoEm is timestamp;
+      }
+
+      // A criança existe, é da mesma UBS e está ativa.
+      function criancaAtivaDaUbs(criancaId, ubsId) {
+        return exists(/databases/$(database)/documents/criancas/$(criancaId))
+          && get(/databases/$(database)/documents/criancas/$(criancaId)).data.ubsId == ubsId
+          && get(/databases/$(database)/documents/criancas/$(criancaId)).data.ativa == true;
+      }
+
+      allow read: if master() || daMinhaUbs(resource.data.ubsId);
+
+      allow create: if daMinhaUbs(request.resource.data.ubsId)
+        && ubsAtiva(request.resource.data.ubsId)
+        && avaliacaoValida(request.resource.data)
+        && request.resource.data.keys().hasOnly([
+            'ubsId', 'criancaId', 'profissionalId', 'profissionalNome', 'microarea',
+            'data', 'pesoKg', 'alturaCm', 'tipoMedida', 'situacao', 'indicadores',
+            'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida',
+            'versao', 'criadoEm', 'atualizadoEm'
+          ])
+        && criancaAtivaDaUbs(request.resource.data.criancaId, request.resource.data.ubsId)
+        && request.resource.data.profissionalId == request.auth.uid
+        && request.resource.data.profissionalNome == perfil().nome
+        && (ausenteOuNulo(request.resource.data, 'microarea')
+            || master()
+            || request.resource.data.microarea == perfil().get('microarea', null))
+        && request.resource.data.excluida == false
+        && request.resource.data.versao == 0
+        && request.resource.data.criadoEm == request.time
+        && request.resource.data.atualizadoEm == request.time;
+
+      // Correção ou exclusão (RF14): só o autor, só até 15 min após
+      // criadoEm (o master pode sempre). Exige versão +1, motivo e o log
+      // criado no mesmo lote (RNF11). ubsId, criancaId, profissionalId,
+      // profissionalNome, microarea e criadoEm não mudam.
+      allow update: if daMinhaUbs(resource.data.ubsId)
+        && (master()
+            || (resource.data.profissionalId == request.auth.uid
+                && request.time < resource.data.criadoEm + duration.value(15, 'm')))
+        && resource.data.excluida == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'data', 'pesoKg', 'alturaCm', 'tipoMedida', 'situacao', 'indicadores',
+            'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida',
+            'motivoExclusao', 'versao', 'atualizadoEm',
+            'alteradoPor', 'alteradoEm', 'motivoAlteracao'
+          ])
+        && avaliacaoValida(request.resource.data)
+        && request.resource.data.versao == resource.data.get('versao', 0) + 1
+        && texto(request.resource.data.motivoAlteracao, 3, 200)
+        && request.resource.data.alteradoPor == request.auth.uid
+        && request.resource.data.alteradoEm == request.time
+        && request.resource.data.atualizadoEm == request.time
+        && !exists(/databases/$(database)/documents/avaliacoes/$(id)/alteracoes/$(string(request.resource.data.versao)))
+        && existsAfter(/databases/$(database)/documents/avaliacoes/$(id)/alteracoes/$(string(request.resource.data.versao)));
+
+      // Sem exclusão física: use excluida = true (com motivo e log).
+      allow delete: if false;
+
+      // Log imutável de correções/exclusões (RNF11). Só pode ser criado no
+      // mesmo lote da alteração, com os valores anteriores conferidos.
+      match /alteracoes/{altId} {
+
+        function logAvaliacaoValido(log) {
+          let antes = get(/databases/$(database)/documents/avaliacoes/$(id)).data;
+          let depois = getAfter(/databases/$(database)/documents/avaliacoes/$(id)).data;
+          return daMinhaUbs(antes.ubsId)
+            && log.keys().hasOnly([
+                'alteradoPor', 'alteradoEm', 'motivo', 'versao', 'acao',
+                'pesoKgAnterior', 'alturaCmAnterior', 'dataAnterior',
+                'situacaoAnterior', 'indicadoresAnterior', 'desnutricaoAnterior'
+              ])
+            && log.keys().hasAll([
+                'alteradoPor', 'alteradoEm', 'motivo', 'versao', 'acao',
+                'pesoKgAnterior', 'alturaCmAnterior', 'dataAnterior',
+                'situacaoAnterior', 'indicadoresAnterior', 'desnutricaoAnterior'
+              ])
+            && (master()
+                || (antes.profissionalId == request.auth.uid
+                    && request.time < antes.criadoEm + duration.value(15, 'm')))
+            && depois.versao == antes.get('versao', 0) + 1
+            && altId == string(depois.versao)
+            && log.versao == depois.versao
+            && depois.alteradoPor == request.auth.uid
+            && depois.alteradoEm == request.time
+            && log.alteradoPor == request.auth.uid
+            && log.alteradoEm == request.time
+            && texto(log.motivo, 3, 200)
+            && log.motivo == depois.motivoAlteracao
+            && log.acao == (depois.excluida == true ? 'exclusao' : 'correcao')
+            && log.pesoKgAnterior == antes.pesoKg
+            && log.alturaCmAnterior == antes.alturaCm
+            && log.dataAnterior == antes.data
+            && log.situacaoAnterior == antes.situacao
+            && log.indicadoresAnterior == antes.indicadores
+            && log.desnutricaoAnterior == antes.desnutricao;
+        }
+
+        allow read: if master()
+          || daMinhaUbs(get(/databases/$(database)/documents/avaliacoes/$(id)).data.ubsId);
+        allow create: if logAvaliacaoValido(request.resource.data);
+        allow update, delete: if false;
+      }
+    }
+
+    // Consulta em collectionGroup('alteracoes'): só o master.
+    match /{path=**}/alteracoes/{altId} {
+      allow read: if master();
+    }
+
+    // Qualquer outro caminho: negado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

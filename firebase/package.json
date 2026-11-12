@@ -1,0 +1,17 @@
+{
+  "name": "nutrimirim-firestore-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Testes das regras de seguranca do Firestore (emulador)",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project demo-nutrimirim --config ../firebase.json \"node --test\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.3.0",
+    "firebase-tools": "^15.36.0"
+  },
+  "engines": {
+    "node": ">=24.12"
+  }
+}

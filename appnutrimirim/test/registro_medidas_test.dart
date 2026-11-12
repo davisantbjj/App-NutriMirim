@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:appnutrimirim/data/mock_data.dart';
@@ -12,6 +13,9 @@ Future<void> _abrir(WidgetTester t) async {
   _args = null;
   await t.pumpWidget(
     MaterialApp(
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [Locale('pt', 'BR')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: const RegistroMedidasScreen(),
       routes: {
         Routes.resultado: (ctx) {
