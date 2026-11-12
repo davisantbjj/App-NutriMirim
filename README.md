@@ -65,7 +65,11 @@ O NutriMirim é um projeto voltado para a vigilância nutricional infantil, dese
 
 | Integrante | Responsabilidade |
 | --- | --- |
-| Davi Santana Lóz | Revisão geral do código; criação do `CONTEXTO_IA.md` (contexto compartilhado para IAs, registro de prompts, padrão de commits e fluxo de branches); divisão das tasks de front-end e back-end; cronograma de entregas |
+| Alexandre Afonso Silva Virgens |Desenvolvimento das telas de recuperação de senha, configuração da localização em português e implementação de testes de validação. | 
+| Davi Santana Lóz | Revisão geral do código; criação do `CONTEXTO_IA.md` (contexto compartilhado para IAs, registro de prompts, padrão de commits e fluxo de branches); divisão das tasks de front-end e back-end; cronograma de entregas; Desenvolvimento das telas de Abertura, Login e Início. Correção da navegação, refatoração dos modelos de dados, padronização de datas e implementação de testes. | 
+| Larissa Barbosa dos Santos | Desenvolvimento das telas de Nova Avaliação, Cadastro e Registro de Medidas. Melhorias de acessibilidade, seleção de datas e validação de CPF. | 
+| Lorena Reis Santos | Desenvolvimento das telas de Dados da Criança, Perfil e Lista de Crianças. Melhorias na busca, ajustes de interface e implementação de testes. | 
+| Talita Santos das Virgens | Desenvolvimento das telas de Resultado, Curva de Crescimento e Histórico. Correção da navegação, ordenação das avaliações e implementação de testes; Atualizar o README.md e o CHANGELOG.md|
 
 As tasks de cada integrante, o cronograma e o fluxo de branches estão detalhados no [`CONTEXTO_IA.md`](CONTEXTO_IA.md).
 
