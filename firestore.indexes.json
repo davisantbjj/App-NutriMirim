@@ -1,0 +1,41 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "avaliacoes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ubsId", "order": "ASCENDING" },
+        { "fieldPath": "criancaId", "order": "ASCENDING" },
+        { "fieldPath": "excluida", "order": "ASCENDING" },
+        { "fieldPath": "data", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "avaliacoes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "criancaId", "order": "ASCENDING" },
+        { "fieldPath": "excluida", "order": "ASCENDING" },
+        { "fieldPath": "data", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "criancas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ubsId", "order": "ASCENDING" },
+        { "fieldPath": "ativa", "order": "ASCENDING" },
+        { "fieldPath": "nomeBusca", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "criancas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ubsId", "order": "ASCENDING" },
+        { "fieldPath": "nomeBusca", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
