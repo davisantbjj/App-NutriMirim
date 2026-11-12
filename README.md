@@ -61,7 +61,7 @@ O NutriMirim é um projeto voltado para a vigilância nutricional infantil, dese
 | --- | --- |
 | Davi Santana Lóz | Criação do projeto Flutter (`appnutrimirim/`) e importação do protótipo do Figma para o código |
 
-## PLANEJAMENTO DO DESENVOLVIMENTO - 10/11/2026
+## PLANEJAMENTO DO DESENVOLVIMENTO - 11/11/2026
 
 | Integrante | Responsabilidade |
 | --- | --- |

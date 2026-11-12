@@ -1,3 +1,26 @@
+## [11/11/2026]
+
+### Adicionado
+- Testes automatizados de navegação, recuperação de senha e busca de crianças.
+- Suporte à localização `pt_BR` no aplicativo.
+- Identificador único (`id`) no modelo de crianças.
+- Utilitários para formatação de datas e números.
+- Máscara e validação de CPF.
+- Seleção de data de nascimento por calendário (`DatePicker`).
+- Recursos de acessibilidade no formulário de cadastro.
+
+### Modificado
+- Modelos de dados atualizados para utilizar `DateTime` e relacionar avaliações pelo ID da criança.
+- Histórico de avaliações ordenado da mais recente para a mais antiga.
+- Busca de crianças aprimorada para ignorar acentos.
+- Interface do Perfil ajustada para indicar funcionalidades indisponíveis.
+- Cadastro atualizado para remover a pré-seleção do sexo.
+
+### Corrigido
+- Duplicação da tela inicial na barra de navegação inferior.
+- Navegação do Histórico para abrir a criança correspondente.
+- Remoção do filtro sem funcionalidade da tela de Histórico.
+
 ## [10/11/2026]
 
 ### Adicionado
