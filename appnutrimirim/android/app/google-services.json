@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "316113212870",
+    "project_id": "app-nutrimirim",
+    "storage_bucket": "app-nutrimirim.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316113212870:android:c9d086fffb667d0cc60ec7",
+        "android_client_info": {
+          "package_name": "br.com.nutrimirim.appnutrimirim"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD35lhWWTnAOVtzG5cACH1SriW2MvWlggA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
