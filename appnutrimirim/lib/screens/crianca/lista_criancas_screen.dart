@@ -164,7 +164,7 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
                 onTap: () => Navigator.pushNamed(
                   context,
                   Routes.dadosCrianca,
-                  arguments: c,
+                  arguments: c.id,
                 ),
                 child: Row(
                   children: [

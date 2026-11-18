@@ -99,10 +99,12 @@ class MockData {
   ];
 
   /// Avaliação da criança em destaque (não aparece no Histórico do protótipo).
+  /// 10,2 kg para ficar coerente com a regra provisória (`peso < 10` é
+  /// desnutrição) e com a situação "Normal".
   static final _avaliacaoDestaque = Avaliacao(
     criancaId: 'c0',
     data: DateTime(2026, 8, 15),
-    pesoKg: 9.8,
+    pesoKg: 10.2,
     alturaCm: 85,
     situacao: Situacao.normal,
   );

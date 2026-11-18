@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../routes.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import 'recuperacao_layout.dart';
 
 /// TELA 02B — Recuperação de senha: confirmação de envio.
@@ -13,10 +13,10 @@ class RecuperarEnviadoScreen extends StatelessWidget {
     return RecuperacaoLayout(
       children: [
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Enviamos um link de recuperação para o seu e-mail ou sms.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textMuted, fontSize: 15),
+          style: TextStyle(color: context.cores.textoSecundario, fontSize: 15),
         ),
         const SizedBox(height: 40),
         // Atalho do protótipo: simula o usuário abrindo o link recebido.

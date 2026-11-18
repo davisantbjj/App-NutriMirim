@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../routes.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
 
 enum NavTab { inicio, historico, avaliacao, perfil }
 
@@ -39,21 +40,21 @@ class AppBottomNav extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(11, 0, 11, 14),
         padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.cores.superficie,
           borderRadius: BorderRadius.circular(40),
-          border: Border.all(color: AppColors.iconMuted),
+          border: Border.all(color: context.cores.icone),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             for (final (tab, icon, activeIcon, label, route) in _items)
-              _NavButton(
-                icon: tab == current ? activeIcon : icon,
-                label: label,
-                selected: tab == current,
-                onTap: tab == current
-                    ? null
-                    : () => _navegar(context, route),
+              Expanded(
+                child: _NavButton(
+                  icon: tab == current ? activeIcon : icon,
+                  label: label,
+                  selected: tab == current,
+                  onTap: tab == current ? null : () => _navegar(context, route),
+                ),
               ),
           ],
         ),
@@ -101,7 +102,7 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : AppColors.iconMuted;
+    final color = selected ? AppColors.primary : context.cores.icone;
     return Semantics(
       selected: selected,
       button: true,
@@ -119,7 +120,7 @@ class _NavButton extends StatelessWidget {
                 label,
                 style: TextStyle(
                   color: color,
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
               ),
