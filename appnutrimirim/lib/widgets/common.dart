@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../data/models.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
 
 /// Logotipo do NutriMirim (criança com folhas).
 class AppLogo extends StatelessWidget {
@@ -93,7 +94,7 @@ class TextBackButton extends StatelessWidget {
     return TextButton.icon(
       onPressed: () => Navigator.maybePop(context),
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.textDark,
+        foregroundColor: context.cores.texto,
         textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         padding: EdgeInsets.zero,
       ),
@@ -119,10 +120,10 @@ class FieldLabel extends StatelessWidget {
           text: text,
           children: [if (required) const TextSpan(text: ' *')],
         ),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: AppColors.textDark,
+          color: context.cores.texto,
         ),
       ),
     );
@@ -200,8 +201,8 @@ class AppCard extends StatelessWidget {
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
-    this.color = AppColors.surface,
-    this.borderColor = AppColors.border,
+    this.color,
+    this.borderColor,
     this.onTap,
     this.radius = 12,
   });
@@ -209,17 +210,22 @@ class AppCard extends StatelessWidget {
   final double radius;
   final Widget child;
   final EdgeInsetsGeometry padding;
-  final Color color;
-  final Color borderColor;
+
+  /// Nulo usa a superfície do tema.
+  final Color? color;
+
+  /// Nulo usa a borda suave do tema (mais forte no alto contraste).
+  final Color? borderColor;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final cores = context.cores;
     return Material(
-      color: color,
+      color: color ?? cores.superficie,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radius),
-        side: BorderSide(color: borderColor),
+        side: BorderSide(color: borderColor ?? cores.bordaSuave),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -292,7 +298,10 @@ class InfoRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+            style: TextStyle(
+              color: context.cores.textoSecundario,
+              fontSize: 12,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -338,6 +347,13 @@ class LastEvaluationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cores = context.cores;
+    final hc = cores.ehAltoContraste;
+    final titulo = hc ? cores.texto : _cinzaTitulo;
+    final rotulo = hc ? cores.textoSecundario : _cinzaRotulo;
+    final valor = hc ? cores.texto : _cinzaValor;
+    final divisoria = hc ? cores.bordaSuave : _divisoria;
+
     Widget cell(String title, String value, {String? sub, int flex = 2}) =>
         Expanded(
           flex: flex,
@@ -347,63 +363,53 @@ class LastEvaluationCard extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: _cinzaRotulo, fontSize: 11),
+                style: TextStyle(color: rotulo, fontSize: 12),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: _cinzaValor,
+                style: TextStyle(
+                  color: valor,
                   fontWeight: FontWeight.w700,
-                  fontSize: 11,
+                  fontSize: 12,
                 ),
               ),
               if (sub != null)
-                Text(
-                  sub,
-                  style: const TextStyle(color: _cinzaRotulo, fontSize: 10),
-                ),
+                Text(sub, style: TextStyle(color: rotulo, fontSize: 12)),
             ],
           ),
         );
 
-    const divider = VerticalDivider(width: 1, thickness: 1, color: _divisoria);
+    final divider = VerticalDivider(width: 1, thickness: 1, color: divisoria);
 
     return AppCard(
       padding: EdgeInsets.zero,
-      color: const Color(0xFFFDFDFD),
+      color: hc ? cores.superficie : const Color(0xFFFDFDFD),
       child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Última avaliação',
                     style: TextStyle(
-                      color: _cinzaTitulo,
+                      color: titulo,
                       fontWeight: FontWeight.w700,
                       fontSize: 12,
                     ),
                   ),
                 ),
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 14,
-                  color: _cinzaRotulo,
-                ),
+                Icon(Icons.calendar_today_outlined, size: 14, color: rotulo),
                 const SizedBox(width: 6),
-                Text(
-                  data,
-                  style: const TextStyle(color: _cinzaRotulo, fontSize: 12),
-                ),
+                Text(data, style: TextStyle(color: rotulo, fontSize: 12)),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.border),
+          Divider(height: 1, color: cores.bordaSuave),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
             child: IntrinsicHeight(
@@ -422,11 +428,11 @@ class LastEvaluationCard extends StatelessWidget {
                     flex: 3,
                     child: Column(
                       children: [
-                        const Text(
+                        Text(
                           'Classificação',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _cinzaRotulo, fontSize: 11),
+                          style: TextStyle(color: rotulo, fontSize: 12),
                         ),
                         const SizedBox(height: 4),
                         FittedBox(

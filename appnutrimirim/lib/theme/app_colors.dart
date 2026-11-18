@@ -27,7 +27,13 @@ class AppColors {
     0xFF3F657D,
   ); // ícones e borda da barra inferior
   static const successBorder = Color(0xFF7BDEAC);
+
+  /// Borda decorativa (cartões e divisórias). Não serve para campos.
   static const border = Color(0xFFCCE0F2);
+
+  /// Borda de campos e controles: 3,46:1 sobre o fundo e 3,55:1 sobre o
+  /// branco (o WCAG 1.4.11 pede 3:1). A `border` acima tem só 1,35:1.
+  static const borderStrong = Color(0xFF6F8BA6);
 
   // Fundos suaves dos cartões
   static const lightSky = Color(0xFFE8F7FF);

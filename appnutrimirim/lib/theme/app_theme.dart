@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_palette.dart';
 
 class AppTheme {
   AppTheme._();
 
   static ThemeData light({bool highContrast = false}) {
-    final textColor = highContrast ? Colors.black : AppColors.textDark;
+    final p = highContrast ? AppPalette.altoContraste : AppPalette.normal;
+    final textColor = p.texto;
     final base = ThemeData(
       useMaterial3: true,
       fontFamily: 'Almarai',
@@ -18,7 +20,8 @@ class AppTheme {
             AppColors.statusBadText, // texto de erro AA; borda segue vermelha
         surface: AppColors.surface,
       ),
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: p.fundo,
+      extensions: [p],
     );
 
     return base.copyWith(
@@ -27,7 +30,7 @@ class AppTheme {
         displayColor: textColor,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.background,
+        backgroundColor: p.fundo,
         foregroundColor: textColor,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -41,11 +44,8 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
-        hintStyle: TextStyle(
-          color: highContrast ? Colors.black54 : AppColors.textMuted,
-          fontSize: 14,
-        ),
+        fillColor: p.superficie,
+        hintStyle: TextStyle(color: p.textoSecundario, fontSize: 14),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 12,
@@ -54,15 +54,13 @@ class AppTheme {
           minWidth: 42,
           minHeight: 48,
         ),
-        border: _outline(AppColors.border),
-        enabledBorder: _outline(
-          highContrast ? AppColors.textDark : AppColors.border,
-        ),
+        border: _outline(p.borda),
+        enabledBorder: _outline(p.borda),
         focusedBorder: _outline(AppColors.primary, width: 1.6),
         errorBorder: _outline(AppColors.red),
         focusedErrorBorder: _outline(AppColors.red, width: 1.6),
-        prefixIconColor: AppColors.iconMuted,
-        suffixIconColor: AppColors.textMuted,
+        prefixIconColor: p.icone,
+        suffixIconColor: p.textoSecundario,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -108,9 +106,7 @@ class AppTheme {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.all(Colors.white),
         trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected)
-              ? AppColors.primary
-              : AppColors.border,
+          (s) => s.contains(WidgetState.selected) ? AppColors.primary : p.borda,
         ),
         trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),

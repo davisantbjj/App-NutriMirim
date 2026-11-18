@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../routes.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../widgets/common.dart';
 import 'recuperacao_layout.dart';
 
@@ -22,9 +22,12 @@ class _RecuperarEmailScreenState extends State<RecuperarEmailScreen> {
       key: _formKey,
       child: RecuperacaoLayout(
         children: [
-          const Text(
+          Text(
             'Digite seu e-mail ou número de telefone para redefinir a senha!',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 15),
+            style: TextStyle(
+              color: context.cores.textoSecundario,
+              fontSize: 15,
+            ),
           ),
           const SizedBox(height: 14),
           const LabeledField(
