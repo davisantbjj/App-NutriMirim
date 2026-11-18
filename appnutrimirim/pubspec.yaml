@@ -64,6 +64,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/oms/
 
   # Fontes do protótipo no Figma (licença OFL em assets/fonts/)
   fonts:

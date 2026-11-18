@@ -154,7 +154,7 @@ class DadosCriancaScreen extends StatelessWidget {
             onPressed: () => Navigator.pushNamed(
               context,
               Routes.registroMedidas,
-              arguments: c.id,
+              arguments: arg is Crianca ? c : c.id,
             ),
           ),
         ],

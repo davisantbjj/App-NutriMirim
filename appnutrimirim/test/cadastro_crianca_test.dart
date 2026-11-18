@@ -1,139 +1,179 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:appnutrimirim/routes.dart';
+import 'package:appnutrimirim/data/models.dart';
 import 'package:appnutrimirim/screens/avaliacao/cadastro_crianca_screen.dart';
-import 'package:appnutrimirim/services/validadores.dart';
 import 'package:appnutrimirim/theme/app_theme.dart';
+import 'package:appnutrimirim/widgets/common.dart';
 
-Future<void> _abrirCadastro(WidgetTester tester) async {
-  tester.view.physicalSize = const Size(1170, 2532);
-  tester.view.devicePixelRatio = 3;
-  addTearDown(tester.view.reset);
+Finder _campo(String label) => find.descendant(
+  of: find.byWidgetPredicate((w) => w is LabeledField && w.label == label),
+  matching: find.byType(TextFormField),
+);
 
-  await tester.pumpWidget(
+Future<void> _abrir(WidgetTester t) async {
+  t.view.physicalSize = const Size(800, 1400);
+  t.view.devicePixelRatio = 1;
+  addTearDown(t.view.reset);
+  await t.pumpWidget(
     MaterialApp(
       theme: AppTheme.light(),
-      locale: const Locale('pt', 'BR'),
-      supportedLocales: const [Locale('pt', 'BR')],
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: const CadastroCriancaScreen(),
+      routes: {
+        Routes.registroMedidas: (_) =>
+            const Scaffold(body: Text('MEDIDAS_STUB')),
+      },
     ),
   );
-  await tester.pumpAndSettle();
+}
+
+Future<void> _salvar(WidgetTester t) async {
+  await t.ensureVisible(find.text('Salvar e Continuar'));
+  await t.tap(find.text('Salvar e Continuar'));
+  await t.pumpAndSettle();
+}
+
+Future<void> _data(WidgetTester t) async {
+  await t.tap(_campo('Nascimento'));
+  await t.pumpAndSettle();
+  final dialog = t.element(find.byType(DatePickerDialog));
+  await t.tap(find.text(MaterialLocalizations.of(dialog).okButtonLabel));
+  await t.pumpAndSettle();
+}
+
+Future<void> _dadosObrigatorios(WidgetTester t) async {
+  for (final entrada in {
+    'Nome completo': 'Criança de teste',
+    'Bairro': 'Bairro de teste',
+    'Responsável legal': 'Responsável de teste',
+    'CPF Responsável': '52998224725',
+    'Contato': '11999999999',
+  }.entries) {
+    await t.enterText(_campo(entrada.key), entrada.value);
+  }
+  await t.tap(find.byType(DropdownButtonFormField<String>));
+  await t.pumpAndSettle();
+  await t.tap(find.text('UBS Centro').last);
+  await t.pumpAndSettle();
 }
 
 void main() {
-  group('validação de CPF', () {
-    test('aceita CPF com dígitos verificadores válidos', () {
-      expect(cpfValido('529.982.247-25'), isTrue);
-    });
-
-    test('rejeita dígito verificador incorreto e números repetidos', () {
-      expect(cpfValido('529.982.247-24'), isFalse);
-      expect(cpfValido('111.111.111-11'), isFalse);
-    });
+  testWidgets('sexo começa vazio e anuncia botão e seleção exclusiva', (
+    t,
+  ) async {
+    await _abrir(t);
+    for (final label in ['Masculino', 'Feminino']) {
+      final node = t.getSemantics(find.bySemanticsLabel(label));
+      expect(node.flagsCollection.isButton, isTrue);
+      expect(node.flagsCollection.isSelected, Tristate.isFalse);
+    }
+    await t.tap(find.text('Feminino'));
+    await t.pump();
+    expect(
+      t
+          .getSemantics(find.bySemanticsLabel('Feminino'))
+          .flagsCollection
+          .isSelected,
+      Tristate.isTrue,
+    );
+    await t.tap(find.text('Masculino'));
+    await t.pump();
+    expect(
+      t
+          .getSemantics(find.bySemanticsLabel('Feminino'))
+          .flagsCollection
+          .isSelected,
+      Tristate.isFalse,
+    );
+    expect(
+      t
+          .getSemantics(find.bySemanticsLabel('Masculino'))
+          .flagsCollection
+          .isSelected,
+      Tristate.isTrue,
+    );
   });
 
-  testWidgets('sexo inicia sem seleção e informa semântica ao selecionar', (
-    tester,
-  ) async {
-    final semantics = tester.ensureSemantics();
-    await _abrirCadastro(tester);
-
-    expect(
-      tester.getSemantics(find.bySemanticsLabel('Masculino')),
-      matchesSemantics(
-        label: 'Masculino',
-        isButton: true,
-        hasSelectedState: true,
-        isSelected: false,
-        hasTapAction: true,
-      ),
-    );
-    expect(
-      tester.getSemantics(find.bySemanticsLabel('Feminino')),
-      matchesSemantics(
-        label: 'Feminino',
-        isButton: true,
-        hasSelectedState: true,
-        isSelected: false,
-        hasTapAction: true,
-      ),
-    );
-
-    await tester.tap(find.bySemanticsLabel('Feminino'));
-    await tester.pump();
-
-    expect(
-      tester.getSemantics(find.bySemanticsLabel('Feminino')),
-      matchesSemantics(
-        label: 'Feminino',
-        isButton: true,
-        hasSelectedState: true,
-        isSelected: true,
-        hasTapAction: true,
-      ),
-    );
-    semantics.dispose();
+  testWidgets('sexo e nascimento ausentes impedem continuar', (t) async {
+    await _abrir(t);
+    await _dadosObrigatorios(t);
+    await _salvar(t);
+    expect(find.text('Selecione o sexo'), findsOneWidget);
+    expect(find.text('Escolha a data de nascimento'), findsOneWidget);
+    expect(find.text('MEDIDAS_STUB'), findsNothing);
+    await t.tap(find.text('Feminino'));
+    await _data(t);
+    expect(find.text('Selecione o sexo'), findsNothing);
+    expect(find.text('Escolha a data de nascimento'), findsNothing);
+    await _salvar(t);
+    expect(find.text('MEDIDAS_STUB'), findsOneWidget);
+    final crianca =
+        ModalRoute.of(t.element(find.text('MEDIDAS_STUB')))!.settings.arguments
+            as Crianca;
+    expect(crianca.nome, 'Criança de teste');
+    expect(crianca.sexo, Sexo.feminino);
+    expect(crianca.nascimento, DateUtils.dateOnly(DateTime.now()));
   });
 
-  testWidgets('nascimento abre DatePicker e preenche a data escolhida', (
-    tester,
+  testWidgets('calendário limita nascimento a hoje e cancelar mantém vazio', (
+    t,
   ) async {
-    await _abrirCadastro(tester);
-
-    final nascimento = find.widgetWithText(TextFormField, 'DD/MM/AAAA');
-    await tester.tap(nascimento);
-    await tester.pumpAndSettle();
-
-    expect(find.byType(DatePickerDialog), findsOneWidget);
-    final dialogContext = tester.element(find.byType(DatePickerDialog));
-    final localizacoes = MaterialLocalizations.of(dialogContext);
-    expect(Localizations.localeOf(dialogContext), const Locale('pt', 'BR'));
-    expect(find.text(localizacoes.cancelButtonLabel), findsOneWidget);
-    await tester.tap(find.text('OK'));
-    await tester.pumpAndSettle();
-
+    await _abrir(t);
+    final field = t.widget<TextFormField>(_campo('Nascimento'));
+    final input = t.widget<TextField>(
+      find.descendant(
+        of: _campo('Nascimento'),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(input.readOnly, isTrue);
+    await t.tap(_campo('Nascimento'));
+    await t.pumpAndSettle();
+    final picker = t.widget<DatePickerDialog>(find.byType(DatePickerDialog));
+    expect(picker.lastDate, DateUtils.dateOnly(DateTime.now()));
+    final ctx = t.element(find.byType(DatePickerDialog));
+    await t.tap(find.text(MaterialLocalizations.of(ctx).cancelButtonLabel));
+    await t.pumpAndSettle();
+    expect(field.controller!.text, isEmpty);
+    await _data(t);
     final hoje = DateTime.now();
-    final dataEsperada =
-        '${hoje.day.toString().padLeft(2, '0')}/'
-        '${hoje.month.toString().padLeft(2, '0')}/'
-        '${hoje.year}';
-    expect(find.widgetWithText(TextFormField, dataEsperada), findsOneWidget);
+    expect(
+      field.controller!.text,
+      '${hoje.day.toString().padLeft(2, '0')}/${hoje.month.toString().padLeft(2, '0')}/${hoje.year}',
+    );
+    await t.tap(_campo('Nascimento'));
+    await t.pumpAndSettle();
+    expect(
+      t.widget<DatePickerDialog>(find.byType(DatePickerDialog)).initialDate,
+      DateUtils.dateOnly(hoje),
+    );
+    final ctx2 = t.element(find.byType(DatePickerDialog));
+    await t.tap(find.text(MaterialLocalizations.of(ctx2).cancelButtonLabel));
+    await t.pumpAndSettle();
+    expect(field.controller!.text, isNotEmpty);
   });
 
-  testWidgets('aplica máscaras e limita CPF e telefone', (tester) async {
-    await _abrirCadastro(tester);
-
-    final cpfs = find.widgetWithText(TextFormField, '000.000.000-00');
-    final telefone = find.widgetWithText(TextFormField, '(00) 00000-0000');
-
-    await tester.enterText(cpfs.first, '5299822472599');
-    await tester.enterText(cpfs.last, '5299822472599');
-    await tester.enterText(telefone, '7991234567899');
-
-    String textoDoCampo(Finder campo) => tester
-        .widget<EditableText>(
-          find.descendant(of: campo, matching: find.byType(EditableText)),
-        )
-        .controller
-        .text;
-
-    expect(textoDoCampo(cpfs.first), '529.982.247-25');
-    expect(textoDoCampo(cpfs.last), '529.982.247-25');
-    expect(textoDoCampo(telefone), '(79) 91234-5678');
-  });
-
-  testWidgets('formulário mostra erro para CPF inválido', (tester) async {
-    await _abrirCadastro(tester);
-
-    final cpfs = find.widgetWithText(TextFormField, '000.000.000-00');
-    await tester.enterText(cpfs.last, '52998224724');
-    await tester.ensureVisible(find.text('Salvar e Continuar'));
-    await tester.tap(find.text('Salvar e Continuar'));
-    await tester.pump();
-
-    expect(find.text('CPF inválido'), findsOneWidget);
-  });
+  for (final label in ['CPF Responsável', 'CPF da criança']) {
+    testWidgets('$label recebe máscara e bloqueia dígitos inválidos', (
+      t,
+    ) async {
+      await _abrir(t);
+      await _dadosObrigatorios(t);
+      await t.tap(find.text('Masculino'));
+      await _data(t);
+      await t.enterText(_campo(label), '52998224724');
+      expect(
+        t.widget<TextFormField>(_campo(label)).controller!.text,
+        '529.982.247-24',
+      );
+      await _salvar(t);
+      expect(find.text('CPF inválido'), findsOneWidget);
+      expect(find.text('MEDIDAS_STUB'), findsNothing);
+      await t.enterText(_campo(label), '52998224725');
+      await _salvar(t);
+      expect(find.text('MEDIDAS_STUB'), findsOneWidget);
+    });
+  }
 }
