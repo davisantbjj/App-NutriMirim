@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/mock_data.dart';
+import '../data/models.dart';
 import '../routes.dart';
 import '../theme/app_colors.dart';
 import '../widgets/bottom_nav.dart';
@@ -13,8 +14,18 @@ class HistoricoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final itens = [...MockData.avaliacoes]
-      ..sort((a, b) => b.data.compareTo(a.data));
+    final arg = ModalRoute.of(context)?.settings.arguments;
+    final criancaId = arg is String
+        ? arg
+        : arg is Crianca
+        ? arg.id
+        : null;
+    final itens =
+        (criancaId == null
+                ? [...MockData.avaliacoes]
+                : MockData.avaliacoesDe(criancaId))
+            .toList()
+          ..sort((a, b) => b.data.compareTo(a.data));
 
     return Scaffold(
       appBar: const BackAppBar(title: 'Histórico'),
@@ -29,7 +40,7 @@ class HistoricoScreen extends StatelessWidget {
                 onTap: () => Navigator.pushNamed(
                   context,
                   Routes.dadosCrianca,
-                  arguments: MockData.criancaPorId(a.criancaId),
+                  arguments: a.criancaId,
                 ),
                 child: Row(
                   children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models.dart';
+import '../../data/mock_data.dart';
 import '../../routes.dart';
 import '../../services/validadores.dart';
 import '../../theme/app_colors.dart';
@@ -18,9 +19,17 @@ class CadastroCriancaScreen extends StatefulWidget {
 
 class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nome = TextEditingController();
+  final _cpfCrianca = TextEditingController();
   final _nascimento = TextEditingController();
+  final _bairro = TextEditingController();
+  final _responsavel = TextEditingController();
+  final _cpfResponsavel = TextEditingController();
+  final _contato = TextEditingController();
   Sexo? _sexo;
   String? _ubs;
+  String? _criancaId;
+  bool _preenchido = false;
 
   static const _ubsOpcoes = [
     'UBS Jardim das Flores',
@@ -31,8 +40,47 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
 
   @override
   void dispose() {
+    _nome.dispose();
+    _cpfCrianca.dispose();
     _nascimento.dispose();
+    _bairro.dispose();
+    _responsavel.dispose();
+    _cpfResponsavel.dispose();
+    _contato.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_preenchido) return;
+
+    final arg = ModalRoute.of(context)?.settings.arguments;
+    final criancaId = arg is String
+        ? arg
+        : arg is Crianca
+        ? arg.id
+        : null;
+    if (criancaId == null) return;
+
+    final crianca = MockData.criancaPorId(criancaId);
+    if (crianca == null) return;
+
+    _preenchido = true;
+    _criancaId = crianca.id;
+    _nome.text = crianca.nome;
+    _nascimento.text = crianca.nascimento == null
+        ? ''
+        : formatarData(crianca.nascimento!);
+    _sexo = crianca.sexo;
+    _bairro.text = crianca.bairro;
+    _ubs = crianca.ubs;
+    final responsavel = crianca.responsavel;
+    if (responsavel != null) {
+      _responsavel.text = responsavel.nome;
+      _cpfResponsavel.text = responsavel.cpfMascarado;
+      _contato.text = responsavel.telefone;
+    }
   }
 
   Future<void> _escolherNascimento() async {
@@ -63,13 +111,15 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
             gap,
-            const LabeledField(
+            LabeledField(
+              controller: _nome,
               label: 'Nome completo',
               required: true,
               hint: 'Digite o nome da criança',
             ),
             gap,
             LabeledField(
+              controller: _cpfCrianca,
               label: 'CPF da criança',
               hint: '000.000.000-00',
               icon: Icons.child_care_outlined,
@@ -100,8 +150,9 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(
+                Expanded(
                   child: LabeledField(
+                    controller: _bairro,
                     label: 'Bairro',
                     required: true,
                     hint: 'Ex.: Centro',
@@ -140,7 +191,8 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
               ],
             ),
             gap,
-            const LabeledField(
+            LabeledField(
+              controller: _responsavel,
               label: 'Responsável legal',
               required: true,
               hint: 'Nome do pai, mãe ou tutor',
@@ -151,6 +203,7 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
               children: [
                 Expanded(
                   child: LabeledField(
+                    controller: _cpfResponsavel,
                     label: 'CPF Responsável',
                     required: true,
                     hint: '000.000.000-00',
@@ -162,6 +215,7 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
                 SizedBox(width: 12),
                 Expanded(
                   child: LabeledField(
+                    controller: _contato,
                     label: 'Contato',
                     required: true,
                     hint: '(00) 00000-0000',
@@ -176,7 +230,11 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  Navigator.pushNamed(context, Routes.registroMedidas);
+                  Navigator.pushNamed(
+                    context,
+                    Routes.registroMedidas,
+                    arguments: _criancaId,
+                  );
                 }
               },
               child: const Text('Salvar e Continuar'),

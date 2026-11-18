@@ -14,8 +14,12 @@ class DadosCriancaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final arg = ModalRoute.of(context)?.settings.arguments as Crianca?;
-    final c = arg ?? MockData.criancaDestaque;
+    final arg = ModalRoute.of(context)?.settings.arguments;
+    final c = arg is Crianca
+        ? arg
+        : arg is String
+        ? MockData.criancaPorId(arg) ?? MockData.criancaDestaque
+        : MockData.criancaDestaque;
     final r = c.responsavel;
     final ultima = MockData.ultimaAvaliacaoDe(c.id);
 
@@ -59,8 +63,11 @@ class DadosCriancaScreen extends StatelessWidget {
           ),
           Center(
             child: TextButton(
-              onPressed: () =>
-                  Navigator.pushNamed(context, Routes.cadastroCrianca),
+              onPressed: () => Navigator.pushNamed(
+                context,
+                Routes.cadastroCrianca,
+                arguments: c.id,
+              ),
               child: const Text('Editar dados'),
             ),
           ),
@@ -78,7 +85,11 @@ class DadosCriancaScreen extends StatelessWidget {
               peso: formatarPeso(ultima.pesoKg),
               situacao: ultima.situacao,
               footer: TextButton(
-                onPressed: () => Navigator.pushNamed(context, Routes.historico),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  Routes.historico,
+                  arguments: c.id,
+                ),
                 child: const Text(
                   'Ver histórico',
                   style: TextStyle(
@@ -91,8 +102,11 @@ class DadosCriancaScreen extends StatelessWidget {
           const SizedBox(height: 18),
           _ArrowButton(
             label: 'Curva de Crescimento',
-            onPressed: () =>
-                Navigator.pushNamed(context, Routes.curvaCrescimento),
+            onPressed: () => Navigator.pushNamed(
+              context,
+              Routes.curvaCrescimento,
+              arguments: c.id,
+            ),
           ),
           const SizedBox(height: 18),
           const Text(
@@ -137,8 +151,11 @@ class DadosCriancaScreen extends StatelessWidget {
           const SizedBox(height: 18),
           _ArrowButton(
             label: 'Registrar Avaliação',
-            onPressed: () =>
-                Navigator.pushNamed(context, Routes.registroMedidas),
+            onPressed: () => Navigator.pushNamed(
+              context,
+              Routes.registroMedidas,
+              arguments: c.id,
+            ),
           ),
         ],
       ),

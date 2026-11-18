@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/mock_data.dart';
+import '../../data/models.dart';
 import '../../routes.dart';
 import '../../widgets/common.dart';
 import '../../utils/formatters.dart';
@@ -98,6 +99,14 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final arg = ModalRoute.of(context)?.settings.arguments;
+    final criancaId = arg is String
+        ? arg
+        : arg is Crianca
+        ? arg.id
+        : null;
+    final crianca = criancaId == null ? null : MockData.criancaPorId(criancaId);
+
     return Scaffold(
       appBar: const BackAppBar(title: 'Registro de Medidas'),
       body: Form(
@@ -105,6 +114,16 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
           children: [
+            if (crianca != null) ...[
+              Text(
+                crianca.nome,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             const Text(
               'Medidas antropométricas',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),

@@ -47,13 +47,13 @@ class AppBottomNav extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             for (final (tab, icon, activeIcon, label, route) in _items)
-              _NavButton(
-                icon: tab == current ? activeIcon : icon,
-                label: label,
-                selected: tab == current,
-                onTap: tab == current
-                    ? null
-                    : () => _navegar(context, route),
+              Expanded(
+                child: _NavButton(
+                  icon: tab == current ? activeIcon : icon,
+                  label: label,
+                  selected: tab == current,
+                  onTap: tab == current ? null : () => _navegar(context, route),
+                ),
               ),
           ],
         ),

@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import '../../data/mock_data.dart';
 import '../../data/models.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/bottom_nav.dart';
@@ -120,6 +121,14 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
   @override
   Widget build(BuildContext context) {
     final spec = _specs[_tab];
+    final arg = ModalRoute.of(context)?.settings.arguments;
+    final criancaId = arg is String
+        ? arg
+        : arg is Crianca
+        ? arg.id
+        : null;
+    final crianca = criancaId == null ? null : MockData.criancaPorId(criancaId);
+
     return Scaffold(
       appBar: const BackAppBar(
         title: 'Curva de Crescimento',
@@ -137,6 +146,13 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
             ],
           ),
           const SizedBox(height: 8),
+          if (crianca != null) ...[
+            Text(
+              crianca.nome,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+          ],
           AppCard(
             radius: 15,
             padding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
