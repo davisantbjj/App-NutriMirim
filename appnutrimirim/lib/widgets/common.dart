@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/models.dart';
 import '../theme/app_colors.dart';
@@ -144,6 +145,7 @@ class LabeledField extends StatelessWidget {
     this.readOnly = false,
     this.onTap,
     this.fieldKey,
+    this.inputFormatters,
   });
 
   final GlobalKey<FormFieldState<String>>? fieldKey;
@@ -158,6 +160,7 @@ class LabeledField extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final bool readOnly;
   final VoidCallback? onTap;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -172,6 +175,7 @@ class LabeledField extends StatelessWidget {
           obscureText: obscureText,
           readOnly: readOnly,
           onTap: onTap,
+          inputFormatters: inputFormatters,
           validator:
               validator ??
               (required

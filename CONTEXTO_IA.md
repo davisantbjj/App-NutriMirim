@@ -103,6 +103,7 @@ flutter test        # testes
 - **Tela pequena.** Os testes checam overflow em 360 dp de largura.
 - **Commits em português.** Toda mensagem de commit é escrita em português, no formato `tipo: descrição curta`, com o verbo no presente. Tipos usados: `feat` (funcionalidade/tela), `fix` (correção), `test` (testes), `docs` (documentação), `chore` (configuração e arquivos de apoio) e `refactor` (reorganização sem mudar o comportamento). Exemplos: `feat: telas 01-12 fiéis ao protótipo do Figma` e `fix: barra inferior não duplica a Home`.
 - **Arquivos ignorados pelo Git:** `.claude/`, `CLAUDE.md` e `CLAUDE.local.md` são locais de cada integrante. O contexto compartilhado fica **neste arquivo**.
+- **Referência do RF02 (17/11/2026):** Larissa determinou o uso da OMS. Pesquisa e parâmetros estão em [`docs/validacao-antropometrica-oms.md`](docs/validacao-antropometrica-oms.md). Os limites de plausibilidade em z-score foram identificados; a implementação deverá compartilhar os dados e o cálculo do RF03, preservar resultados indisponíveis e distinguir alerta de conferência de classificação nutricional. Isso ainda não altera o código do app.
 
 ## Pendências conhecidas
 
@@ -113,13 +114,41 @@ Encontradas na revisão de 10/11/2026 e ainda não corrigidas. Ao corrigir uma, 
 - [ ] As telas de dados, registro, curva e histórico não passam a criança adiante, e "Editar dados" abre o cadastro vazio (`dados_crianca_screen.dart`).
 - [ ] O mock contradiz a regra provisória `peso < 10 → desnutrição`: a criança de 9,8 kg aparece como "Normal". A curva mostra 82 cm e o mock tem 85 cm, e os dados da curva estão fixos.
 - [ ] "Editar dados" do Perfil tem `onPressed: () {}`, então o botão parece ativo e não faz nada.
-- [ ] No cadastro, o nascimento é texto livre, o CPF não tem máscara nem validação e o sexo já vem marcado.
+- [x] No cadastro, o nascimento é texto livre, o CPF não tem máscara nem validação e o sexo já vem marcado. Corrigido localmente em 17/11/2026: DatePicker, máscara e dígitos verificadores de CPF, sexo inicialmente vazio com validação e Semantics.
 - [ ] Os modelos não têm `id`, as datas são `String` e a busca de avaliações é feita por nome.
 - [ ] O "Alto Contraste" quase não muda nada, porque as telas usam `AppColors` e cores fixas direto, sem passar pelo `Theme`.
 - [ ] Não há localização `pt_BR`: o DatePicker aparece em inglês.
 - [ ] A borda dos campos tem contraste de 1,35:1 e o WCAG pede 3:1. Há fontes de 9 a 11 px.
 - [ ] A formatação de número e de data está duplicada em várias telas.
 - [ ] Faltam testes de login, recuperação de senha, cadastro, lista, barra inferior e histórico.
+
+### Situação das tasks de Larissa — verificação local em 17/11/2026
+
+Esta verificação considera os arquivos desta cópia do projeto; não confirma entregas de outros integrantes. Larissa autorizou expressamente criar, commitar e enviar uma branch separada em 17/11/2026, substituindo, para esta entrega, a orientação anterior de manter tudo apenas na working tree. Branch desta entrega: `feat/larissa-cadastro-cpf-oms-2026-11-17`, criada a partir da `develop`. Alterações locais anteriores a este trabalho ficam fora do commit.
+
+- [x] Task fácil de front-end (11/11): sexo sem pré-seleção, Semantics e calendário, com testes.
+- [x] Task fácil de back-end (18/11): validadores de CPF e plausibilidade das medidas conforme a OMS, com testes. Conclui a validação do RF02; o salvamento permanece pendente.
+- [ ] Task difícil de front-end (25/11): cadastro salvando e edição preenchida. Controllers, máscara e validação já adiantados.
+- [ ] Task difícil de back-end (01/12): persistência de criança/avaliação, correção em até 15 minutos e auditoria.
+
+| Entrega | Task | Situação e dependências |
+| --- | --- | --- |
+| 11/11 | Sexo sem pré-seleção, Semantics e calendário | **Concluída em 17/11.** Implementados com testes em `cadastro_crianca_test.dart`. Sexo e nascimento obrigatórios; calendário impede datas futuras. A localização `pt_BR` continua na task de Alexandre. |
+| 18/11 | `services/validadores.dart`: CPF e faixas por idade | **Concluída em 17/11 (validação).** CPF com ambos os verificadores e rejeição de repetições; parâmetros OMS por sexo/idade, quatro indicadores, alertas de plausibilidade e motivos de indisponibilidade implementados em conjunto com `services/antropometria_oms.dart`, com tabelas oficiais offline e testes. Persistência do RF02 ainda pendente. |
+| 25/11 | Cadastro salvando e edição preenchida | Adiantados controllers, máscara e validação de CPF no formulário. A persistência e edição permanecem pendentes: modelos com `id`/`DateTime` e repositórios do Davi ainda ausentes nesta cópia; Lorena deve encaminhar a criança na ação "Editar dados". O botão ainda apenas navega após validar. |
+| 01/12 | Salvar criança/avaliação e corrigir medição em até 15 minutos, com auditoria | Pendente dos repositórios do Davi, identificação do profissional pelo serviço de autenticação do Alexandre e contrato de auditoria (usuário, data e motivo, conforme RNF11). |
+
+**RF02 e Talita — situação atual:** a validação de medidas é responsabilidade de Larissa; tabelas LMS e cálculo de z-score (RF03) foram atribuídos a Talita. Após a definição da OMS por Larissa e seu pedido de implementação, esta entrega adiantou a base numérica compartilhável e concluiu a validação, sem depender de nova implementação de Talita para esse fluxo. Talita ainda precisa integrar classificação, condutas, Resultado e Curva conforme suas tasks; elas não são marcadas como concluídas aqui. Alertas de plausibilidade não equivalem a diagnóstico nutricional. A pesquisa e a implementação abaixo registram a evolução dessa decisão.
+
+**Cuidados do cadastro:** CPF da criança permanece opcional; o do responsável é obrigatório. A checagem é matemática e não comprova existência ou titularidade na Receita. Nenhuma faixa clínica nova foi inventada. A seleção de nascimento não introduz limite clínico de idade; apenas impede data futura (o calendário inicia em 1900). `LabeledField` ganhou suporte opcional a `inputFormatters` para aplicar a máscara nos dois campos de CPF.
+
+**Validação local:** `dart analyze` sem problemas e `flutter test` com 72 testes passando, incluindo 35 novos casos de CPF, máscara e cadastro, além dos testes existentes de layout em 360 dp. Os testes de cadastro foram adicionados; os testes das demais telas listadas nas pendências continuam fora desta task.
+
+**Atualização posterior em 17/11/2026 — pesquisa OMS:** a referência e os limites de plausibilidade foram encontrados e documentados em `docs/validacao-antropometrica-oms.md`. A pendência anterior de descobrir a referência está resolvida. Permanecem a implementação do RF02 e a integração com os parâmetros/cálculo do RF03 da Talita, além da definição conjunta da versão e da fronteira etária. Larissa pode desenvolver desde já a checagem de entradas e a sinalização de z-scores. Não foram modificados arquivos Dart nesta pesquisa; os testes acima pertencem à implementação anterior.
+
+**Atualização posterior em 17/11/2026 — implementação OMS:** por solicitação expressa de Larissa, a validação agora usa os cinco arquivos oficiais offline, com origem/licença/SHA-256, e um serviço Dart puro para os quatro indicadores. A tela 06 recebe a criança do cadastro/ficha, calcula idade na medição, exige posição e informação de edema e mostra alertas de plausibilidade ou motivos de indisponibilidade. A cobertura adotada é `idadeEmDias / 30.4375 < 60`, com dados de 0–1826 dias. A regra provisória `peso < 10` foi retirada desse fluxo; o botão agora é “Validar medidas”. Isso adianta a base numérica reutilizável por Talita no RF03; não implementa classificação, condutas, curva, salvamento ou auditoria. Os detalhes e a política para posição inadequada em menores de 9 meses estão na seção 6 de `docs/validacao-antropometrica-oms.md`. O aviso ilustrativo da tela 07 permanece.
+
+**Verificação da implementação OMS:** `dart analyze` sem problemas; `flutter test` com 73 testes passando. Conferidos os SHA-256 dos cinco arquivos de referência e a ausência de erros em `git diff --check`. Os testes de limites fixos/mocks da tela 06 foram substituídos por testes do novo comportamento.
 
 ## Divisão de tarefas — front-end (a partir de 10/11/2026)
 
@@ -273,6 +302,13 @@ Regras: uma linha por pedido, a mais recente no fim. Copie o prompt **exatamente
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "a primeira entrega tem que ser amanha" | Adicionou a Entrega 1 em 11/11 com as tasks fáceis do front-end e moveu a task fácil de back-end do Davi para a semana de 18/11. |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "atualize o readme e changelog do que foi feito na semana passda e hoje" | Atualizou `README.md` (desenvolvimento de 04/11, planejamento de 10/11, cronograma e como rodar) e `CHANGELOG.md` (registros de 04/11 e 10/11). |
 | 10/11/2026 | Davi Santana Lóz | Claude Code (Claude Opus 5.5) | "entrefa final do app é dia 1" | Mudou a entrega final de qua 02/12 para ter 01/12 no cronograma do `CONTEXTO_IA.md`, no `README.md` e no `CHANGELOG.md`. |
+| 17/11/2026 | Larissa Barbosa dos Santos | ChatGPT / Codex | "Chat, sou Larissa, vamos verificar quais são minhas tasks, as que eu preciso e posso fazer sem precisar dos outros, e adiantar as minhas tasks (Leia o arquivo contexto.ia)" | Leu o contexto e os requisitos, conferiu dependências locais e implementou sexo obrigatório com Semantics, DatePicker, controllers e CPF com máscara/validação. Criou `lib/services/validadores.dart`, `lib/utils/cpf_input_formatter.dart` e três arquivos de testes; alterou `cadastro_crianca_screen.dart`, `widgets/common.dart` e este contexto. Persistência e faixas por idade continuam pendentes. |
+| 17/11/2026 | Larissa Barbosa dos Santos | ChatGPT / Codex | "Ainda não, se não me engano essa task era de Talita. Procure e analise se o que preciso fazer, depende dela." | Confirmou a divisão RF02 (Larissa) e RF03/tabelas OMS (Talita), a ausência de limites por idade e a necessidade de alinhar a referência com Talita/grupo; registrou as dependências sem alterar cálculos clínicos. |
+| 17/11/2026 | Larissa Barbosa dos Santos | ChatGPT / Codex | "O que falta fazer?" | Explicou as pendências de RF02, persistência, edição, auditoria e tema, distinguindo as partes prontas e as dependências dos demais integrantes. Registro acrescentado junto à pesquisa seguinte. |
+| 17/11/2026 | Larissa Barbosa dos Santos | ChatGPT / Codex | "No caso essa validação de peso e altura por idade, dever seguir os da OMS (organizaçao mundial da saude), leia o contextos dos arquivos e vasculhe a internet, para podermos utilzar para os parametros" | Releu contexto, pesquisa, estudo de caso, requisitos e código; consultou páginas, manual e implementação oficiais da OMS. Criou `docs/validacao-antropometrica-oms.md` com limites de plausibilidade, fontes dos dados, regras de medição, proposta de integração RF02/RF03 e casos de teste. Atualizou este contexto, sem alterar Dart ou executar comandos de escrita no Git. |
+| 17/11/2026 | Larissa Barbosa dos Santos | ChatGPT / Codex | "Implemente os parametros para o código, conforme a OMS, e a necessidade do nosso aplicativo" | Importou tabelas oficiais com procedência e licença em `assets/oms/`, criou importador, `services/antropometria_oms.dart` e `data/oms_assets.dart`, ampliou `validadores.dart`, conectou cadastro/ficha à validação na tela 06 e substituiu a regra de resultado mock por alertas OMS. Atualizou `pubspec.yaml`, testes e documentação. Persistência e classificação clínica permanecem pendentes; nenhuma escrita no Git. |
+| 17/11/2026 | Larissa Barbosa dos Santos | ChatGPT / Codex | "O que falta fazermos agora?" | Detalhou as pendências de persistência, edição, auditoria e integração, distinguindo as validações concluídas das dependências dos demais integrantes. |
+| 17/11/2026 | Larissa Barbosa dos Santos | ChatGPT / Codex | "Quero que vocë suba essas alterações em uma nova branch, para que possamos comparar com a outra futuramente. Então, deve ser subida em uma branch separada. Se atente a marcar as minhas tasks que foram concluidas no arquivo contexto_ia, por favor! Suba a branch a identificando as tasks feitas hoje" | Atualizou o checklist e a situação das tasks de Larissa neste contexto; organizou cadastro acessível, validadores de CPF/OMS, tabelas oficiais, documentação e testes para a branch `feat/larissa-cadastro-cpf-oms-2026-11-17`, a partir da `develop`, conforme autorização expressa para commit e envio. Alterações locais preexistentes excluídas desta entrega. |
 
 ### Prompts longos
 

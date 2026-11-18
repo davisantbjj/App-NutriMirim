@@ -1,0 +1,2 @@
+# Preserve the original WHO table bytes and SHA-256 hashes on every platform.
+*.txt -text whitespace=cr-at-eol

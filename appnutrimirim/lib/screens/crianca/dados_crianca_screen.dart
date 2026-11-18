@@ -133,8 +133,11 @@ class DadosCriancaScreen extends StatelessWidget {
           const SizedBox(height: 18),
           _ArrowButton(
             label: 'Registrar Avaliação',
-            onPressed: () =>
-                Navigator.pushNamed(context, Routes.registroMedidas),
+            onPressed: () => Navigator.pushNamed(
+              context,
+              Routes.registroMedidas,
+              arguments: c,
+            ),
           ),
         ],
       ),
