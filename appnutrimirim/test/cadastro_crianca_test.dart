@@ -1,5 +1,3 @@
-import 'dart:ui' show Tristate;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:appnutrimirim/routes.dart';
@@ -65,34 +63,30 @@ void main() {
   ) async {
     await _abrir(t);
     for (final label in ['Masculino', 'Feminino']) {
-      final node = t.getSemantics(find.bySemanticsLabel(label));
-      expect(node.flagsCollection.isButton, isTrue);
-      expect(node.flagsCollection.isSelected, Tristate.isFalse);
+      expect(
+        t.getSemantics(find.bySemanticsLabel(label)),
+        containsSemantics(
+          isButton: true,
+          hasSelectedState: true,
+          isSelected: false,
+        ),
+      );
     }
     await t.tap(find.text('Feminino'));
     await t.pump();
     expect(
-      t
-          .getSemantics(find.bySemanticsLabel('Feminino'))
-          .flagsCollection
-          .isSelected,
-      Tristate.isTrue,
+      t.getSemantics(find.bySemanticsLabel('Feminino')),
+      containsSemantics(hasSelectedState: true, isSelected: true),
     );
     await t.tap(find.text('Masculino'));
     await t.pump();
     expect(
-      t
-          .getSemantics(find.bySemanticsLabel('Feminino'))
-          .flagsCollection
-          .isSelected,
-      Tristate.isFalse,
+      t.getSemantics(find.bySemanticsLabel('Feminino')),
+      containsSemantics(hasSelectedState: true, isSelected: false),
     );
     expect(
-      t
-          .getSemantics(find.bySemanticsLabel('Masculino'))
-          .flagsCollection
-          .isSelected,
-      Tristate.isTrue,
+      t.getSemantics(find.bySemanticsLabel('Masculino')),
+      containsSemantics(hasSelectedState: true, isSelected: true),
     );
   });
 
