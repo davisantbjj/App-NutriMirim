@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../data/models.dart';
 import '../../data/mock_data.dart';
@@ -6,14 +8,21 @@ import '../../utils/formatters.dart';
 import '../../data/oms_assets.dart';
 import '../../routes.dart';
 import '../../services/antropometria_oms.dart';
+import '../../services/relatorio_avaliacao.dart';
 import '../../services/validadores.dart';
 import '../../widgets/common.dart';
 
 /// TELA 06 — Registro e conferência das medidas, sem diagnóstico fictício.
 class RegistroMedidasScreen extends StatefulWidget {
-  const RegistroMedidasScreen({super.key, this.crianca, this.carregarTabelas});
+  const RegistroMedidasScreen({
+    super.key,
+    this.crianca,
+    this.carregarTabelas,
+    this.compartilharTexto,
+  });
   final Crianca? crianca;
   final Future<TabelasOms> Function()? carregarTabelas;
+  final Future<void> Function(String texto)? compartilharTexto;
 
   @override
   State<RegistroMedidasScreen> createState() => _RegistroMedidasScreenState();
@@ -336,9 +345,73 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
             const Text(
               'Esta conferência não substitui a avaliação nutricional. Os dados desta tela ainda não são salvos.',
             ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () => _compartilharRelatorio(resultado),
+              icon: const Icon(Icons.share_outlined),
+              label: const Text('Compartilhar relatório'),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _compartilharRelatorio(ValidacaoAntropometrica resultado) async {
+    final crianca = _crianca;
+    final nascimento = _nascimento;
+    final dataAvaliacao = _dataEscolhida;
+    if (crianca == null || nascimento == null || dataAvaliacao == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Informe os dados da criança e da avaliação.'),
+        ),
+      );
+      return;
+    }
+
+    final texto = gerarRelatorioAvaliacao(
+      crianca: crianca,
+      nascimento: nascimento,
+      dataAvaliacao: dataAvaliacao,
+      validacao: resultado,
+    );
+
+    try {
+      final compartilhar = widget.compartilharTexto;
+      if (compartilhar != null) {
+        await compartilhar(texto);
+        return;
+      }
+
+      final resultadoCompartilhamento = await SharePlus.instance.share(
+        ShareParams(
+          text: texto,
+          subject: 'Relatório NutriMirim - ${crianca.nome}',
+        ),
+      );
+      if (resultadoCompartilhamento.status == ShareResultStatus.unavailable &&
+          mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('O compartilhamento não está disponível.'),
+          ),
+        );
+      }
+    } on PlatformException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível compartilhar o relatório.'),
+        ),
+      );
+    } on MissingPluginException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('O compartilhamento não está disponível.'),
+        ),
+      );
+    }
   }
 }
