@@ -77,6 +77,7 @@ void main() {
   Future<void> abrir(
     WidgetTester t, {
     Future<TabelasOms> Function()? carregar,
+    Future<void> Function(String texto)? compartilhar,
   }) async {
     t.view.physicalSize = const Size(800, 1400);
     t.view.devicePixelRatio = 1;
@@ -87,6 +88,7 @@ void main() {
         home: RegistroMedidasScreen(
           crianca: criancaTeste(),
           carregarTabelas: carregar ?? () async => tabelas,
+          compartilharTexto: compartilhar,
         ),
       ),
     );
@@ -122,6 +124,25 @@ void main() {
     await t.enterText(campo('Peso (kg)'), '20');
     await t.pump();
     expect(find.text('Validação OMS'), findsNothing);
+  });
+  testWidgets('compartilha relatório com dados, z-scores e classificação', (
+    t,
+  ) async {
+    String? relatorio;
+    await abrir(t, compartilhar: (texto) async => relatorio = texto);
+    await preencher(t);
+    await validar(t);
+
+    await t.ensureVisible(find.text('Compartilhar relatório'));
+    await t.tap(find.text('Compartilhar relatório'));
+    await t.pumpAndSettle();
+
+    expect(relatorio, contains('Criança: Criança teste'));
+    expect(relatorio, contains('Data de nascimento:'));
+    expect(relatorio, matches(RegExp(r'Data da avaliação: \d{2}/\d{2}/\d{4}')));
+    expect(relatorio, contains('Classificação geral'));
+    expect(relatorio, contains('Peso para idade: z ='));
+    expect(relatorio, contains('Confira os dados antes de compartilhar.'));
   });
   testWidgets('peso extremo pede conferência e preserva a medida digitada', (
     t,
