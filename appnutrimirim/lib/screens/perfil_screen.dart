@@ -148,11 +148,15 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 iconAlignment: IconAlignment.end,
                 icon: const Icon(Icons.logout),
                 label: const Text('Sair da conta'),
-                onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  Routes.login,
-                  (_) => false,
-                ),
+                onPressed: () async {
+                  await authService.sair();
+                  if (!context.mounted) return;
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    Routes.login,
+                    (_) => false,
+                  );
+                },
               ),
             ),
           ),

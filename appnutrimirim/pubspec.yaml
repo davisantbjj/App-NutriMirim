@@ -41,6 +41,8 @@ dependencies:
     sdk: flutter
   share_plus: ^12.0.2
   cloud_firestore: ^7.1.0
+  # Fixo em 7.0.1: a 7.1.0 exige Flutter 3.44+, e o projeto roda no 3.35.3.
+  firebase_auth: 7.0.1
 
 dev_dependencies:
   flutter_test:

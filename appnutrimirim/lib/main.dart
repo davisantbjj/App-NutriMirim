@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'app_state.dart';
 import 'firebase_options.dart';
+import 'services/firebase_auth_service.dart';
 import 'routes.dart';
 import 'theme/app_theme.dart';
 
@@ -14,6 +15,7 @@ Future<void> main() async {
   // Os dados vêm de `Repositorios` (lib/repositories/repositorios.dart), que por
   // padrão usa a memória com o mock. Depois do login (AuthService), chame
   // `Repositorios.usarFirestore(sessao)`; ao sair, `Repositorios.reiniciar()`.
+  authService = FirebaseAuthService();
   runApp(const NutriMirimApp());
 }
 
