@@ -4,12 +4,12 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../../data/curvas_referencia.dart';
-import '../../data/mock_data.dart';
 import '../../data/models.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
+import '../../widgets/estado_assincrono.dart';
 
 /// Dados de um gráfico: curvas de referência, medidas da criança e textos.
 class _ChartSpec {
@@ -47,7 +47,8 @@ String _meses(int m) => m == 1 ? '1 mês' : '$m meses';
 /// TELA 08 — Curva de Crescimento.
 ///
 /// Recebe a criança pela rota: o `id` (recomendado) ou o objeto [Crianca].
-/// Sem argumento, mostra a criança em destaque do mock.
+/// Sem argumento, mostra a criança em destaque (`c0`); os dados vêm dos
+/// repositórios.
 class CurvaCrescimentoScreen extends StatefulWidget {
   const CurvaCrescimentoScreen({super.key});
 
@@ -58,16 +59,6 @@ class CurvaCrescimentoScreen extends StatefulWidget {
 class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
   int _tab = 0;
   static const _tabs = ['Peso/Idade', 'Altura/Idade', 'Peso/Altura'];
-
-  Crianca _crianca(BuildContext context) {
-    final arg = ModalRoute.of(context)?.settings.arguments;
-    if (arg is Crianca) return arg;
-    if (arg is String) {
-      final c = MockData.criancaPorId(arg);
-      if (c != null) return c;
-    }
-    return MockData.criancaDestaque;
-  }
 
   /// Monta o gráfico do indicador com as avaliações da criança.
   _ChartSpec _spec(IndicadorCurva ind, Crianca c, List<Avaliacao> avs) {
@@ -143,8 +134,14 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = _crianca(context);
-    final avs = MockData.avaliacoesDe(c.id);
+    return CriancaComAvaliacoes(
+      argumento: ModalRoute.of(context)?.settings.arguments,
+      titulo: 'Curva de Crescimento',
+      builder: _conteudo,
+    );
+  }
+
+  Widget _conteudo(BuildContext context, Crianca c, List<Avaliacao> avs) {
     final ultima = avs.isEmpty ? null : avs.first;
     final spec = _spec(IndicadorCurva.values[_tab], c, avs);
     final aviso = _aviso(spec, c, avs);

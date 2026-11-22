@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models.dart';
-import '../../data/mock_data.dart';
+import '../../repositories/repositorios.dart';
 import '../../utils/formatters.dart';
 import '../../routes.dart';
 import '../../services/validadores.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/input_formatters.dart';
 import '../../widgets/common.dart';
+import '../../widgets/estado_assincrono.dart';
 
 /// TELA 05 — Cadastro da Criança (ficha de identificação).
 class CadastroCriancaScreen extends StatefulWidget {
@@ -32,6 +33,8 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
   String? _ubs;
   Crianca? _criancaInicial;
   bool _preenchido = false;
+  bool _carregandoCrianca = false;
+  String? _erroCrianca;
 
   @override
   void didChangeDependencies() {
@@ -39,13 +42,40 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
     if (_preenchido) return;
     _preenchido = true;
     final argumento = ModalRoute.of(context)?.settings.arguments;
-    final crianca = argumento is Crianca
-        ? argumento
-        : argumento is String
-        ? MockData.criancaPorId(argumento)
-        : null;
+    if (argumento is Crianca) {
+      _preencher(argumento);
+    } else if (argumento is String) {
+      // Edicao por id: mostra "carregando" (sem formulario, para nao perder o
+      // que o usuario digitar) ate o repositorio responder.
+      _carregandoCrianca = true;
+      _carregarCrianca(argumento);
+    }
+  }
+
+  Future<void> _carregarCrianca(String id) async {
+    String? erro;
+    try {
+      final c = await Repositorios.criancas.porId(id);
+      if (!mounted) return;
+      if (c == null) {
+        erro = 'Criança não encontrada.';
+      } else {
+        _preencher(c);
+      }
+    } on RepositorioException catch (e) {
+      erro = e.mensagem;
+    } catch (_) {
+      erro = 'Não foi possível carregar os dados da criança.';
+    }
+    if (!mounted) return;
+    setState(() {
+      _carregandoCrianca = false;
+      _erroCrianca = erro;
+    });
+  }
+
+  void _preencher(Crianca crianca) {
     _criancaInicial = crianca;
-    if (crianca == null) return;
     _nome.text = crianca.nome;
     _dataNascimento = crianca.nascimento;
     _nascimento.text = crianca.nascimento == null
@@ -102,6 +132,14 @@ class _CadastroCriancaScreenState extends State<CadastroCriancaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_carregandoCrianca || _erroCrianca != null) {
+      return Scaffold(
+        appBar: const BackAppBar(title: 'Cadastro da Criança'),
+        body: _erroCrianca != null
+            ? MensagemCentro(_erroCrianca!, icone: Icons.error_outline)
+            : const CarregandoCentro(),
+      );
+    }
     const gap = SizedBox(height: 16);
     return Scaffold(
       appBar: const BackAppBar(title: 'Cadastro da Criança'),

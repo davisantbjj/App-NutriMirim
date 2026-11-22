@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../data/models.dart';
-import '../../data/mock_data.dart';
+import '../../repositories/repositorios.dart';
 import '../../utils/formatters.dart';
 import '../../data/oms_assets.dart';
 import '../../routes.dart';
@@ -11,6 +11,7 @@ import '../../services/antropometria_oms.dart';
 import '../../services/relatorio_avaliacao.dart';
 import '../../services/validadores.dart';
 import '../../widgets/common.dart';
+import '../../widgets/estado_assincrono.dart';
 
 /// TELA 06 — Registro e conferência das medidas, sem diagnóstico fictício.
 class RegistroMedidasScreen extends StatefulWidget {
@@ -36,6 +37,8 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
   final _nascimentoTexto = TextEditingController();
   final _resultadoKey = GlobalKey();
   Crianca? _crianca;
+  bool _carregandoCrianca = false;
+  String? _erroCrianca;
   DateTime? _nascimento, _dataEscolhida;
   PosicaoMedicao? _posicao;
   bool? _edema;
@@ -49,13 +52,37 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
     if (_inicializado) return;
     _inicializado = true;
     final argumento = ModalRoute.of(context)?.settings.arguments;
-    _crianca =
-        widget.crianca ??
-        (argumento is Crianca
-            ? argumento
-            : argumento is String
-            ? MockData.criancaPorId(argumento)
-            : null);
+    _crianca = widget.crianca ?? (argumento is Crianca ? argumento : null);
+    _aplicarNascimento();
+    if (_crianca == null && argumento is String) {
+      _carregandoCrianca = true;
+      _carregarCrianca(argumento);
+    }
+  }
+
+  Future<void> _carregarCrianca(String id) async {
+    Crianca? c;
+    String? erro;
+    try {
+      c = await Repositorios.criancas.porId(id);
+      if (c == null) erro = 'Criança não encontrada.';
+    } on RepositorioException catch (e) {
+      erro = e.mensagem;
+    } catch (_) {
+      erro = 'Não foi possível carregar os dados da criança.';
+    }
+    if (!mounted) return;
+    setState(() {
+      _carregandoCrianca = false;
+      _erroCrianca = erro;
+      if (c != null) {
+        _crianca = c;
+        _aplicarNascimento();
+      }
+    });
+  }
+
+  void _aplicarNascimento() {
     _nascimento = _crianca?.nascimento;
     _nascimentoTexto.text = _nascimento == null
         ? ''
@@ -112,6 +139,16 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
   }
 
   Future<void> _validar() async {
+    if (_crianca != null && !_crianca!.ativa) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Cadastro desativado: não é possível registrar avaliação.',
+          ),
+        ),
+      );
+      return;
+    }
     if (_carregando || _crianca == null || !_formKey.currentState!.validate()) {
       return;
     }
@@ -157,6 +194,14 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
   @override
   Widget build(BuildContext context) {
     final crianca = _crianca;
+    if (_carregandoCrianca || _erroCrianca != null) {
+      return Scaffold(
+        appBar: const BackAppBar(title: 'Registro de Medidas'),
+        body: _erroCrianca != null
+            ? MensagemCentro(_erroCrianca!, icone: Icons.error_outline)
+            : const CarregandoCentro(),
+      );
+    }
     return Scaffold(
       appBar: const BackAppBar(title: 'Registro de Medidas'),
       body: crianca == null
@@ -183,6 +228,10 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(24),
                 children: [
+                  if (!crianca.ativa) ...[
+                    const AvisoDesativado(),
+                    const SizedBox(height: 12),
+                  ],
                   Text(
                     crianca.nome,
                     style: const TextStyle(

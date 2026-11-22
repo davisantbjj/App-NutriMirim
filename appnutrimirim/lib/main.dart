@@ -11,6 +11,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Projeto Firebase "app-nutrimirim" (gerado pelo `flutterfire configure`).
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Os dados vêm de `Repositorios` (lib/repositories/repositorios.dart), que por
+  // padrão usa a memória com o mock. Depois do login (AuthService), chame
+  // `Repositorios.usarFirestore(sessao)`; ao sair, `Repositorios.reiniciar()`.
   runApp(const NutriMirimApp());
 }
 

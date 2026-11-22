@@ -214,6 +214,8 @@ O app **não apaga** nada (`allow delete: if false`). "Excluir" criança é `ati
 | --- | --- | --- |
 | `avaliacoes` | `ubsId` ↑, `criancaId` ↑, `excluida` ↑, `data` ↓ | Histórico da criança para o profissional (RF05): `where ubsId == X`, `criancaId == Y`, `excluida == false`, `orderBy data desc`. |
 | `avaliacoes` | `criancaId` ↑, `excluida` ↑, `data` ↓ | Mesmo histórico, para o master (sem filtro de UBS). |
+| `avaliacoes` | `ubsId` ↑, `excluida` ↑, `data` ↓ | Histórico geral para o profissional (repositório: `observarTodas`). |
+| `avaliacoes` | `excluida` ↑, `data` ↓ | Histórico geral para o master (sem filtro de UBS). |
 | `criancas` | `ubsId` ↑, `ativa` ↑, `nomeBusca` ↑ | Lista de cadastros ativos ordenada por nome. |
 | `criancas` | `ubsId` ↑, `nomeBusca` ↑ | Lista ordenada por nome, com ou sem inativos. |
 
@@ -247,6 +249,10 @@ Campos que o modelo **ainda não tem** e o repositório precisa adicionar:
 
 - `Crianca`: `nomeBusca`, `ativa`, `versao`, `criadoPor`, `criadoEm`, `atualizadoEm`, `alteradoPor`, `alteradoEm`, `motivoAlteracao`, `ultimaSituacao`, `ultimaAvaliacaoEm`.
 - `Avaliacao`: `id`, `ubsId`, `profissionalId`, `profissionalNome`, `microarea`, `tipoMedida`, `indicadores`, `desnutricao`, `versaoTabelaOms`, `retornoSugerido`, `excluida`, `motivoExclusao`, `versao`, `criadoEm`, `atualizadoEm`, `alteradoPor`, `alteradoEm`, `motivoAlteracao`. (`Indicador.nome` do modelo vira a chave `pi`/`ei`/`pe`/`imci`; `Indicador.zScore`/`situacao` vão em `{zScore, situacao}`.)
+
+## UBS no cadastro de criança (decisão pendente)
+
+No Firestore, o repositório grava a criança em `sessao.ubsAtualId` e ignora o campo `Crianca.ubs` (nome) do objeto recebido. O dropdown "UBS de Referência" do cadastro precisa, portanto, listar as UBS da sessão (`nomesUbs`/`ubsIds`); com texto livre ou lista fixa o valor escolhido não seria gravado. A decisão de como a tela escolhe a UBS está pendente com Larissa e Alexandre.
 
 ## Comportamento offline
 
