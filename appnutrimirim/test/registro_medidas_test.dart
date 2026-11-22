@@ -200,6 +200,7 @@ void main() {
         },
       ),
     );
+    await t.pumpAndSettle();
     await t.ensureVisible(find.text('Registrar Avaliação'));
     await t.pumpAndSettle();
     await t.tap(find.text('Registrar Avaliação'));

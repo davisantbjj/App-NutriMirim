@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../data/mock_data.dart';
 import '../../data/models.dart';
+import '../../repositories/busca.dart';
+import '../../repositories/repositorios.dart';
 import '../../routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
+import '../../widgets/estado_assincrono.dart';
 import '../../utils/formatters.dart';
 
 /// TELA 12 — Cadastro de Crianças (lista com busca e filtro).
@@ -20,38 +22,12 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
   String _busca = '';
   Sexo? _sexo;
 
-  String _normalizarTexto(String texto) {
-    const caracteresAcentuados = {
-      'á': 'a',
-      'à': 'a',
-      'â': 'a',
-      'ã': 'a',
-      'ä': 'a',
-      'é': 'e',
-      'è': 'e',
-      'ê': 'e',
-      'ë': 'e',
-      'í': 'i',
-      'ì': 'i',
-      'î': 'i',
-      'ï': 'i',
-      'ó': 'o',
-      'ò': 'o',
-      'ô': 'o',
-      'õ': 'o',
-      'ö': 'o',
-      'ú': 'u',
-      'ù': 'u',
-      'û': 'u',
-      'ü': 'u',
-      'ç': 'c',
-      'ñ': 'n',
-    };
+  late final Stream<List<Crianca>> _criancas;
 
-    return texto.toLowerCase().replaceAllMapped(
-      RegExp('[${caracteresAcentuados.keys.join()}]'),
-      (match) => caracteresAcentuados[match[0]] ?? match[0]!,
-    );
+  @override
+  void initState() {
+    super.initState();
+    _criancas = Repositorios.criancas.observarTodas();
   }
 
   Future<void> _filtrar() async {
@@ -89,16 +65,39 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
     setState(() => _sexo = escolha is Sexo ? escolha : null);
   }
 
+  List<Crianca> _aplicarFiltros(List<Crianca> todas) => filtrarCriancas(
+    todas,
+    _busca,
+  ).where((c) => _sexo == null || c.sexo == _sexo).toList();
+
   @override
   Widget build(BuildContext context) {
-    final lista = MockData.criancas
-        .where(
-          (c) =>
-              _normalizarTexto(c.nome).contains(_normalizarTexto(_busca)) &&
-              (_sexo == null || c.sexo == _sexo),
-        )
-        .toList();
+    return StreamBuilder<List<Crianca>>(
+      stream: _criancas,
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return Scaffold(
+            appBar: const BackAppBar(title: 'Cadastro de Crianças'),
+            body: const MensagemCentro(
+              'Não foi possível carregar a lista de crianças.',
+              icone: Icons.error_outline,
+            ),
+            bottomNavigationBar: const AppBottomNav(),
+          );
+        }
+        if (!snap.hasData) {
+          return Scaffold(
+            appBar: const BackAppBar(title: 'Cadastro de Crianças'),
+            body: const CarregandoCentro(),
+            bottomNavigationBar: const AppBottomNav(),
+          );
+        }
+        return _tela(context, _aplicarFiltros(snap.data!));
+      },
+    );
+  }
 
+  Widget _tela(BuildContext context, List<Crianca> lista) {
     return Scaffold(
       appBar: const BackAppBar(title: 'Cadastro de Crianças'),
       body: ListView(

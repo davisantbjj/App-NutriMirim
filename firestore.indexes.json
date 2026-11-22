@@ -20,6 +20,23 @@
       ]
     },
     {
+      "collectionGroup": "avaliacoes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ubsId", "order": "ASCENDING" },
+        { "fieldPath": "excluida", "order": "ASCENDING" },
+        { "fieldPath": "data", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "avaliacoes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "excluida", "order": "ASCENDING" },
+        { "fieldPath": "data", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "criancas",
       "queryScope": "COLLECTION",
       "fields": [
