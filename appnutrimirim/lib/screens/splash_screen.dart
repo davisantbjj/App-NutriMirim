@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../app_state.dart';
 import '../routes.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
@@ -23,11 +24,17 @@ class _SplashScreenState extends State<SplashScreen> {
     _timer = Timer(const Duration(milliseconds: 2500), _goToLogin);
   }
 
-  void _goToLogin() {
+  Future<void> _goToLogin() async {
+    _timer?.cancel();
+    // Quem já entrou antes continua logado e vai direto para o Início.
+    final usuario = await authService.restaurarSessao();
     // Só sai da abertura se ela estiver visível (evita redirecionar quando o
     // app foi aberto direto em outra rota, por exemplo um link na web).
     if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? false)) return;
-    Navigator.pushReplacementNamed(context, Routes.login);
+    Navigator.pushReplacementNamed(
+      context,
+      usuario == null ? Routes.login : Routes.home,
+    );
   }
 
   @override
