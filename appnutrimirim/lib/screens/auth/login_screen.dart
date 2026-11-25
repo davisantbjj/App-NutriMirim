@@ -36,7 +36,13 @@ class _LoginScreenState extends State<LoginScreen> {
       _erro = null;
     });
     try {
-      await authService.entrar(email: _email.text, senha: _senha.text);
+      final usuario = await authService.entrar(
+        email: _email.text,
+        senha: _senha.text,
+      );
+      // Lê o perfil e liga o Firestore antes do Início, que já abre os
+      // Streams no initState.
+      await iniciarSessao(usuario);
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, Routes.home);
     } on AuthException catch (e) {

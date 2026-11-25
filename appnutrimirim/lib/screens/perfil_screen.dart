@@ -151,7 +151,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 label: const Text('Sair da conta'),
                 onPressed: () async {
                   try {
-                    await authService.sair();
+                    // Não sai com registros pendentes: apagar o cache
+                    // perderia o que ainda não foi enviado.
+                    await sairDaConta();
                   } on AuthException catch (e) {
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(
@@ -165,6 +167,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     Routes.login,
                     (_) => false,
                   );
+                  // Com o Login aberto: memória de novo e cache apagado.
+                  await desligarSessao();
                 },
               ),
             ),

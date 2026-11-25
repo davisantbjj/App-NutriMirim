@@ -35,13 +35,26 @@ class _SplashScreenState extends State<SplashScreen> {
     } catch (_) {
       usuario = null;
     }
+    // Com sessão salva, lê o perfil e liga o Firestore antes do Início. Sem
+    // acesso ou sem perfil, vai para o Login com a mensagem.
+    String? erro;
+    if (usuario != null) {
+      try {
+        await iniciarSessao(usuario);
+      } on AuthException catch (e) {
+        usuario = null;
+        erro = e.mensagem;
+      }
+    }
     // Só sai da abertura se ela estiver visível (evita redirecionar quando o
     // app foi aberto direto em outra rota, por exemplo um link na web).
     if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? false)) return;
+    final mensagens = ScaffoldMessenger.of(context);
     Navigator.pushReplacementNamed(
       context,
       usuario == null ? Routes.login : Routes.home,
     );
+    if (erro != null) mensagens.showSnackBar(SnackBar(content: Text(erro)));
   }
 
   @override
