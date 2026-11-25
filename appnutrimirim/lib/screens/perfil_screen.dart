@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../routes.dart';
+import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
@@ -149,7 +150,15 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 icon: const Icon(Icons.logout),
                 label: const Text('Sair da conta'),
                 onPressed: () async {
-                  await authService.sair();
+                  try {
+                    await authService.sair();
+                  } on AuthException catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.mensagem)));
+                    return;
+                  }
                   if (!context.mounted) return;
                   Navigator.pushNamedAndRemoveUntil(
                     context,
