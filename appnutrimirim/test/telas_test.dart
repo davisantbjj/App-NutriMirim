@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'fontes.dart';
 import 'package:appnutrimirim/data/mock_data.dart';
 import 'package:appnutrimirim/data/models.dart';
+import 'package:appnutrimirim/repositories/repositorios.dart';
 import 'package:appnutrimirim/routes.dart';
 import 'package:appnutrimirim/screens/avaliacao/resultado_screen.dart';
 import 'package:appnutrimirim/screens/crianca/dados_crianca_screen.dart';
@@ -37,6 +38,8 @@ Future<void> _ir(WidgetTester t, Widget w, {Object? args}) async {
 
 void main() {
   setUpAll(carregarFontes);
+  setUp(Repositorios.reiniciar);
+  tearDown(Repositorios.reiniciar);
 
   testWidgets('Resultado exibe aviso ilustrativo (normal e desnutricao)', (
     t,
@@ -100,6 +103,48 @@ void main() {
       ),
     );
     expect(botao.onPressed, isNull);
+  });
+
+  testWidgets('Perfil mostra dados da sessão e seletor da UBS do médico', (
+    t,
+  ) async {
+    Repositorios.usarMemoria(
+      sessao: const SessaoProfissional(
+        uid: 'm2',
+        nome: 'Carlos Lima',
+        papel: PapelProfissional.medico,
+        ubsIds: ['u1', 'u2'],
+        ubsAtualId: 'u1',
+        nomesUbs: {'u1': 'UBS Centro', 'u2': 'UBS Sul'},
+      ),
+    );
+    await _ir(t, const PerfilScreen());
+
+    expect(find.text('Carlos Lima'), findsOneWidget);
+    expect(find.text('Médico(a)'), findsOneWidget);
+    expect(find.text('UBS atual'), findsOneWidget);
+    expect(find.text('UBS Centro'), findsWidgets);
+  });
+
+  testWidgets('ACS vê opção de microárea e filtro da UBS', (t) async {
+    Repositorios.usarMemoria(
+      sessao: const SessaoProfissional(
+        uid: 'a1',
+        nome: 'Ana Souza',
+        papel: PapelProfissional.acs,
+        ubsIds: ['u1'],
+        ubsAtualId: 'u1',
+        microarea: '03',
+        nomesUbs: {'u1': 'UBS Centro'},
+      ),
+    );
+    await _ir(t, const ListaCriancasScreen());
+
+    expect(find.text('Minha microárea: 03'), findsOneWidget);
+    expect(find.text('Ver toda a UBS'), findsOneWidget);
+    await t.tap(find.text('Ver toda a UBS'));
+    await t.pumpAndSettle();
+    expect(find.text('Mostrando toda a UBS'), findsOneWidget);
   });
 
   group('contraste de Situacao.textColor >= 4.5', () {

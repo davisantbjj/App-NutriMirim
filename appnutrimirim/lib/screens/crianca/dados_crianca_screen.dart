@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/models.dart';
 import '../../routes.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
 import '../../widgets/estado_assincrono.dart';
@@ -92,11 +93,11 @@ class DadosCriancaScreen extends StatelessWidget {
             ),
           ),
           if (ultima == null)
-            const AppCard(
+            AppCard(
               child: Text(
                 'Sem avaliações registradas',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textMuted),
+                style: TextStyle(color: context.cores.textoSecundario),
               ),
             )
           else
@@ -156,15 +157,15 @@ class DadosCriancaScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         'CPF: ${r.cpfMascarado}',
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
+                        style: TextStyle(
+                          color: context.cores.textoSecundario,
                           fontSize: 12,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      _contato(Icons.phone_outlined, r.telefone),
+                      _contato(context, Icons.phone_outlined, r.telefone),
                       const SizedBox(height: 6),
-                      _contato(Icons.mail_outline, r.email),
+                      _contato(context, Icons.mail_outline, r.email),
                     ],
             ),
           ),
@@ -185,14 +186,17 @@ class DadosCriancaScreen extends StatelessWidget {
     );
   }
 
-  Widget _contato(IconData icon, String text) => Row(
+  Widget _contato(BuildContext context, IconData icon, String text) => Row(
     children: [
-      Icon(icon, size: 16, color: AppColors.textMuted),
+      Icon(icon, size: 16, color: context.cores.icone),
       const SizedBox(width: 8),
       Expanded(
         child: Text(
           text,
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          style: TextStyle(
+            color: context.cores.textoSecundario,
+            fontSize: 12,
+          ),
         ),
       ),
     ],

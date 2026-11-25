@@ -85,6 +85,8 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
     List<Avaliacao> itens,
     Map<String, String> nomes,
   ) {
+    final ordenadas = [...itens]
+      ..sort((a, b) => b.data.compareTo(a.data));
     return _moldura(
       ListView(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
@@ -98,7 +100,7 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
                 style: TextStyle(color: context.cores.textoSecundario),
               ),
             ),
-          for (final a in itens)
+          for (final a in ordenadas)
             Padding(
               key: ValueKey(a.id),
               padding: const EdgeInsets.only(bottom: 8),

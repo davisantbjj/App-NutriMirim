@@ -65,6 +65,7 @@ class Crianca {
     required this.cadastradoEm,
     this.endereco = '',
     this.ubs = 'UBS Jardim das Flores',
+    this.microarea,
     this.nascimento,
     this.responsavel,
     this.ativa = true,
@@ -78,6 +79,7 @@ class Crianca {
   final DateTime cadastradoEm;
   final String endereco;
   final String ubs;
+  final String? microarea;
 
   /// Nulo quando a data de nascimento não foi informada.
   final DateTime? nascimento;
@@ -95,6 +97,7 @@ class Crianca {
     DateTime? cadastradoEm,
     String? endereco,
     String? ubs,
+    String? microarea,
     DateTime? nascimento,
     bool limparNascimento = false,
     Responsavel? responsavel,
@@ -108,6 +111,7 @@ class Crianca {
     cadastradoEm: cadastradoEm ?? this.cadastradoEm,
     endereco: endereco ?? this.endereco,
     ubs: ubs ?? this.ubs,
+    microarea: microarea ?? this.microarea,
     nascimento: limparNascimento ? null : (nascimento ?? this.nascimento),
     responsavel: limparResponsavel ? null : (responsavel ?? this.responsavel),
     ativa: ativa ?? this.ativa,
@@ -125,6 +129,7 @@ class Avaliacao {
     this.criadoEm,
     this.profissionalId,
     this.profissionalNome,
+    this.microarea,
     this.tipoMedida,
     this.indicadores = const {},
     this.desnutricao = false,
@@ -147,6 +152,7 @@ class Avaliacao {
   final DateTime? criadoEm;
   final String? profissionalId;
   final String? profissionalNome;
+  final String? microarea;
 
   /// `deitado` ou `em_pe`.
   final String? tipoMedida;
@@ -168,6 +174,7 @@ class Avaliacao {
     DateTime? criadoEm,
     String? profissionalId,
     String? profissionalNome,
+    String? microarea,
     String? tipoMedida,
     bool limparTipoMedida = false,
     Map<String, Indicador>? indicadores,
@@ -186,6 +193,7 @@ class Avaliacao {
     criadoEm: criadoEm ?? this.criadoEm,
     profissionalId: profissionalId ?? this.profissionalId,
     profissionalNome: profissionalNome ?? this.profissionalNome,
+    microarea: microarea ?? this.microarea,
     tipoMedida: limparTipoMedida ? null : (tipoMedida ?? this.tipoMedida),
     indicadores: indicadores ?? this.indicadores,
     desnutricao: desnutricao ?? this.desnutricao,

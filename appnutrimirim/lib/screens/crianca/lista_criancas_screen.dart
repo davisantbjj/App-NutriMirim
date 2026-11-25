@@ -5,6 +5,7 @@ import '../../repositories/busca.dart';
 import '../../repositories/repositorios.dart';
 import '../../routes.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
 import '../../widgets/estado_assincrono.dart';
@@ -21,6 +22,7 @@ class ListaCriancasScreen extends StatefulWidget {
 class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
   String _busca = '';
   Sexo? _sexo;
+  bool _verTodaUbs = false;
 
   late final Stream<List<Crianca>> _criancas;
 
@@ -65,10 +67,22 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
     setState(() => _sexo = escolha is Sexo ? escolha : null);
   }
 
-  List<Crianca> _aplicarFiltros(List<Crianca> todas) => filtrarCriancas(
-    todas,
-    _busca,
-  ).where((c) => _sexo == null || c.sexo == _sexo).toList();
+  List<Crianca> _aplicarFiltros(List<Crianca> todas) {
+    final sessao = Repositorios.sessao;
+    final porArea =
+        sessao?.papel == PapelProfissional.acs &&
+        !_verTodaUbs &&
+        (sessao?.microarea?.isNotEmpty ?? false);
+    final base = porArea
+        ? todas.where(
+            (c) =>
+                c.microarea == null || c.microarea == sessao!.microarea,
+          )
+        : todas;
+    return filtrarCriancas(base, _busca)
+        .where((c) => _sexo == null || c.sexo == _sexo)
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,11 +112,40 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
   }
 
   Widget _tela(BuildContext context, List<Crianca> lista) {
+    final sessao = Repositorios.sessao;
+    final filtroAcs = sessao?.papel == PapelProfissional.acs;
+    final cores = context.cores;
     return Scaffold(
       appBar: const BackAppBar(title: 'Cadastro de Crianças'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
         children: [
+          if (filtroAcs) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _verTodaUbs
+                        ? 'Mostrando toda a UBS'
+                        : 'Minha microárea: ${sessao?.microarea ?? 'não definida'}',
+                    style: TextStyle(
+                      color: cores.textoSecundario,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () =>
+                      setState(() => _verTodaUbs = !_verTodaUbs),
+                  child: Text(
+                    _verTodaUbs ? 'Ver minha microárea' : 'Ver toda a UBS',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
           Row(
             children: [
               Expanded(
@@ -131,9 +174,9 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(112, 48),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  foregroundColor: AppColors.textDark,
+                  foregroundColor: cores.texto,
                   side: BorderSide(
-                    color: _sexo == null ? AppColors.border : AppColors.primary,
+                    color: _sexo == null ? cores.borda : AppColors.primary,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -147,12 +190,12 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
           ),
           const SizedBox(height: 14),
           if (lista.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(32),
               child: Text(
                 'Nenhuma criança encontrada.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textMuted),
+                style: TextStyle(color: cores.textoSecundario),
               ),
             ),
           for (final c in lista)
@@ -173,7 +216,7 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
                         children: [
                           Text(
                             c.nome,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
@@ -181,16 +224,16 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
                           const SizedBox(height: 2),
                           Text(
                             'Cadastrado(a) em : ${formatarData(c.cadastradoEm)}',
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
+                            style: TextStyle(
+                              color: cores.textoSecundario,
                               fontSize: 12,
                             ),
                           ),
                           Text(
                             'Bairro: ${c.bairro}',
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 11,
+                            style: TextStyle(
+                              color: cores.textoSecundario,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -198,7 +241,7 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
                     ),
                     Icon(
                       c.sexo == Sexo.feminino ? Icons.female : Icons.male,
-                      color: AppColors.textMuted,
+                      color: cores.icone,
                       size: 24,
                       semanticLabel: c.sexo == Sexo.feminino
                           ? 'Feminino'

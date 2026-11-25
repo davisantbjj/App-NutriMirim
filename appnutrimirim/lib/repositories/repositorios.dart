@@ -27,6 +27,9 @@ class Repositorios {
 
   static CriancaRepository? _criancas;
   static AvaliacaoRepository? _avaliacoes;
+  static SessaoProfissional? _sessao;
+
+  static SessaoProfissional? get sessao => _sessao;
 
   static CriancaRepository get criancas {
     _garantir();
@@ -50,7 +53,9 @@ class Repositorios {
     bool comMock = true,
     DateTime Function()? agora,
     UsuarioAtual usuario = UsuarioAtual.local,
+    SessaoProfissional? sessao,
   }) {
+    _sessao = sessao;
     final banco = comMock
         ? BancoMemoria.comMock(agora: agora, usuario: usuario)
         : BancoMemoria(agora: agora, usuario: usuario);
@@ -65,6 +70,7 @@ class Repositorios {
     SessaoProfissional sessao, {
     FirebaseFirestore? firestore,
   }) {
+    _sessao = sessao;
     _criancas = CriancaRepositoryFirestore(
       sessao: sessao,
       firestore: firestore,
@@ -76,5 +82,14 @@ class Repositorios {
   }
 
   /// Volta ao padrão: memória com o mock, estado novo.
-  static void reiniciar() => usarMemoria();
+  static void reiniciar() {
+    _sessao = null;
+    usarMemoria();
+  }
+
+  static void trocarUbsAtual(String ubsId) {
+    final atual = _sessao;
+    if (atual == null || !atual.ubsIds.contains(ubsId)) return;
+    _sessao = atual.copyWith(ubsAtualId: ubsId);
+  }
 }
