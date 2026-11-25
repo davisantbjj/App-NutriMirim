@@ -390,14 +390,14 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
                         .abs() >
                     0.001)
               Text(
-                'Medida usada no cálculo: ${resultado.medidaAjustadaCm!.toStringAsFixed(1).replaceAll('.', ',')} cm. A medida original foi mantida.',
+                'Medida usada no cálculo: ${formatarDecimal(resultado.medidaAjustadaCm!)} cm. A medida original foi mantida.',
               ),
             for (final indicador in resultado.indicadores)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: Text(
                   '${indicador.indicador.rotulo}: '
-                  '${indicador.zScore == null ? 'indisponível' : 'z = ${indicador.zScore!.toStringAsFixed(2).replaceAll('.', ',')}'}'
+                  '${indicador.zScore == null ? 'indisponível' : 'z = ${formatarDecimal(indicador.zScore!, casas: 2)}'}'
                   '${indicador.estado == EstadoPlausibilidade.conferir ? ' — conferir medida' : ''}'
                   '${indicador.motivo == null ? '' : '\n${indicador.motivo}'}',
                 ),

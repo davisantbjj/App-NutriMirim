@@ -4,6 +4,7 @@ library;
 import 'dart:math' as math;
 
 import '../data/models.dart';
+import '../utils/formatters.dart';
 import 'antropometria_oms.dart';
 import 'classificacao.dart';
 import 'resultado_nutricional.dart';
@@ -65,7 +66,7 @@ String formatarPercentil(double z) {
   final p = percentilDeZ(z);
   if (p < 0.1) return '< P0,1';
   if (p > 99.9) return '> P99,9';
-  return 'P${p.toStringAsFixed(1).replaceAll('.', ',')}';
+  return 'P${formatarDecimal(p)}';
 }
 
 /// Função erro (Abramowitz e Stegun 7.1.26; erro < 1,5e-7).
