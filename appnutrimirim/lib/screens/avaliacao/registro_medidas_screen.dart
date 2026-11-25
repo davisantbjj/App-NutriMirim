@@ -9,6 +9,7 @@ import '../../data/oms_assets.dart';
 import '../../routes.dart';
 import '../../services/antropometria_oms.dart';
 import '../../services/relatorio_avaliacao.dart';
+import '../../services/resultado_nutricional.dart';
 import '../../services/validadores.dart';
 import '../../widgets/common.dart';
 import '../../widgets/estado_assincrono.dart';
@@ -349,6 +350,17 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
   }
 
   Widget _resumo(ValidacaoAntropometrica resultado) {
+    final crianca = _crianca;
+    final dataAvaliacao = _dataEscolhida;
+    final nutricional = crianca == null || dataAvaliacao == null
+        ? null
+        : montarResultadoNutricional(
+            criancaId: crianca.id,
+            validacao: resultado,
+            dataAvaliacao: dataAvaliacao,
+            nascimento: _nascimento,
+            edema: _edema ?? false,
+          );
     return Padding(
       key: _resultadoKey,
       padding: const EdgeInsets.only(top: 24),
@@ -391,10 +403,20 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
                 ),
               ),
             const SizedBox(height: 16),
-            const Text(
-              'Esta conferência não substitui a avaliação nutricional. Os dados desta tela ainda não são salvos.',
-            ),
+            const Text('Os dados desta tela ainda não são salvos.'),
             const SizedBox(height: 16),
+            if (nutricional != null) ...[
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  Routes.resultado,
+                  arguments: nutricional,
+                ),
+                icon: const Icon(Icons.assessment_outlined),
+                label: const Text('Ver resultado'),
+              ),
+              const SizedBox(height: 12),
+            ],
             OutlinedButton.icon(
               onPressed: () => _compartilharRelatorio(resultado),
               icon: const Icon(Icons.share_outlined),

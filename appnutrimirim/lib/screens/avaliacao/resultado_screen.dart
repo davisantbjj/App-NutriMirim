@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 
-import '../../data/mock_data.dart';
 import '../../data/models.dart';
 import '../../routes.dart';
+import '../../services/classificacao.dart';
+import '../../services/resultado_nutricional.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
+import '../../utils/formatters.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
-import '../../utils/formatters.dart';
+import '../../widgets/estado_assincrono.dart';
 
-/// TELA 07 — Resultado (variações Normal e Desnutrição).
+/// TELA 07 — Resultado da avaliação: z-scores da OMS, classificação do
+/// SISVAN, alerta de encaminhamento, retorno e condutas.
+///
+/// Recebe um [ResultadoNutricional] pela rota (aberta pela tela 06).
 class ResultadoScreen extends StatefulWidget {
   const ResultadoScreen({super.key});
 
@@ -16,18 +22,81 @@ class ResultadoScreen extends StatefulWidget {
   State<ResultadoScreen> createState() => _ResultadoScreenState();
 }
 
+/// Cores do cartão de estado nutricional para cada cor do semáforo.
+({Color fundo, Color texto, Color circulo}) _coresSemaforo(Semaforo s) =>
+    switch (s) {
+      Semaforo.verde => (
+        fundo: AppColors.lightGreen,
+        texto: AppColors.statusNormalText,
+        circulo: AppColors.green,
+      ),
+      Semaforo.amarelo => (
+        fundo: AppColors.lightYellow,
+        texto: AppColors.statusAttentionText,
+        circulo: AppColors.statusRisk,
+      ),
+      Semaforo.vermelho => (
+        fundo: AppColors.lightRed,
+        texto: AppColors.alertText,
+        circulo: AppColors.alertCircle,
+      ),
+    };
+
 class _ResultadoScreenState extends State<ResultadoScreen> {
   bool _detalhes = false;
+  bool _alertaMostrado = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final r = ModalRoute.of(context)?.settings.arguments;
+    final alerta = r is ResultadoNutricional ? r.alerta : null;
+    if (alerta == null || _alertaMostrado) return;
+    _alertaMostrado = true;
+    // RF12: o alerta abre em modal assim que o resultado aparece.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          icon: const Icon(Icons.warning_amber_rounded),
+          iconColor: AppColors.alertCircle,
+          title: Text(alerta.titulo),
+          content: Text(alerta.mensagem),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Entendi'),
+            ),
+          ],
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final r =
-        ModalRoute.of(context)?.settings.arguments as ResultadoAvaliacao? ??
-        MockData.resultadoNormal;
-    final ruim = r.desnutricao;
-    // Textos escuros garantem contraste AA sobre o fundo do cartão.
-    final corTexto = ruim ? AppColors.alertText : AppColors.statusNormalText;
-    final fundo = ruim ? AppColors.lightRed : AppColors.lightGreen;
+    final r = ModalRoute.of(context)?.settings.arguments;
+    if (r is! ResultadoNutricional) {
+      return const Scaffold(
+        appBar: BackAppBar(title: 'Resultado'),
+        body: MensagemCentro(
+          'Nenhuma avaliação para mostrar. Registre e valide as medidas da '
+          'criança para ver o resultado.',
+          icone: Icons.info_outline,
+        ),
+        bottomNavigationBar: AppBottomNav(),
+      );
+    }
+    final cores = context.cores;
+    final c = r.classificacao;
+    final semaforo = _coresSemaforo(c.semaforo);
+    final titulo = c.edema
+        ? 'Desnutrição aguda grave'
+        : c.gravidade == Gravidade.adequado
+        ? 'Adequado'
+        : c.pior.diagnostico;
+    final textoCorpo = TextStyle(fontSize: 12, height: 1.3, color: cores.texto);
 
     return Scaffold(
       appBar: const BackAppBar(title: 'Resultado'),
@@ -35,80 +104,99 @@ class _ResultadoScreenState extends State<ResultadoScreen> {
         padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
         children: [
           // Cartão "Estado nutricional"
-          AppCard(
-            color: fundo,
-            borderColor: Colors.transparent,
-            radius: 15,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: ruim ? AppColors.alertCircle : AppColors.green,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: ruim
-                          ? const Text(
-                              '!',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.check,
+          Semantics(
+            container: true,
+            label: 'Estado nutricional: $titulo',
+            excludeSemantics: true,
+            child: AppCard(
+              color: semaforo.fundo,
+              borderColor: Colors.transparent,
+              radius: 15,
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: semaforo.circulo,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: c.semaforo == Semaforo.verde
+                        ? const Icon(Icons.check, color: Colors.white, size: 22)
+                        : const Text(
+                            '!',
+                            style: TextStyle(
                               color: Colors.white,
-                              size: 22,
-                            ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Estado nutricional',
-                            style: TextStyle(
-                              color: corTexto,
-                              fontWeight: FontWeight.w700,
-                              fontSize: ruim ? 14 : 12,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
-                          Text(
-                            ruim ? 'Desnutrição' : 'Normal',
-                            style: TextStyle(
-                              color: corTexto,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 24,
-                            ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Estado nutricional',
+                          style: TextStyle(
+                            color: semaforo.texto,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
                           ),
-                        ],
-                      ),
+                        ),
+                        Text(
+                          titulo,
+                          style: TextStyle(
+                            color: semaforo.texto,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 22,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                if (ruim) ...[
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Um ou mais indicadores estão abaixo da faixa esperada para a idade.',
-                    style: TextStyle(fontSize: 12, color: AppColors.textBody),
                   ),
                 ],
-              ],
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Resultado ilustrativo – cálculo pela OMS ainda não implementado',
-            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
-          ),
+          if (r.alerta != null) ...[
+            const SizedBox(height: 12),
+            AppCard(
+              color: AppColors.lightRed,
+              borderColor: AppColors.alertCircle,
+              radius: 11,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppColors.alertText,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          r.alerta!.titulo,
+                          style: const TextStyle(
+                            color: AppColors.alertText,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(r.alerta!.mensagem, style: textoCorpo),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           const Text(
             'Indicadores (Z-score)',
@@ -119,10 +207,44 @@ class _ResultadoScreenState extends State<ResultadoScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
             child: Column(
               children: [
-                for (var i = 0; i < r.indicadores.length; i++) ...[
-                  if (i > 0) const Divider(height: 1, color: AppColors.border),
-                  _IndicadorRow(r.indicadores[i]),
+                for (final (i, linha) in [
+                  for (final ind in c.indicadores)
+                    _IndicadorRow.classificado(ind),
+                  for (final ind in r.indisponiveis)
+                    _IndicadorRow.indisponivel(ind),
+                ].indexed) ...[
+                  if (i > 0) Divider(height: 1, color: cores.bordaSuave),
+                  linha,
                 ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _InfoBox(
+            icon: Icons.event_outlined,
+            title: 'Retorno sugerido',
+            child: Text(
+              r.retorno == null
+                  ? 'Defina a data com a equipe: sem a data de nascimento não '
+                        'é possível seguir o calendário de consultas.'
+                  : formatarData(r.retorno!),
+              style: r.retorno == null
+                  ? textoCorpo
+                  : const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _InfoBox(
+            icon: Icons.lightbulb_outline,
+            title: 'Condutas',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final t in r.condutas)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text('•  $t', style: textoCorpo),
+                  ),
               ],
             ),
           ),
@@ -169,66 +291,43 @@ class _ResultadoScreenState extends State<ResultadoScreen> {
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Valores ilustrativos; a comparação com as curvas de referência da OMS será implementada. '
-                    'Quando estiver pronta, Z-score entre -2 e +2 será considerado normal e abaixo de -2, abaixo da faixa esperada.',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  Text(
+                    'Z-scores pelos padrões de crescimento da OMS (2006), com '
+                    'a idade em dias na data da medição'
+                    '${r.idadeMeses == null ? '' : ' (${r.idadeMeses} meses)'}'
+                    '${r.medidaUsadaCm == null ? '' : ' e ${formatarAltura(r.medidaUsadaCm!)} no cálculo'}'
+                    '. Classificação pelos pontos de corte do SISVAN (Ministério '
+                    'da Saúde, 2011) para 0 a 5 anos; o estado nutricional é o '
+                    'do indicador mais alterado.',
+                    style: TextStyle(
+                      color: cores.textoSecundario,
+                      fontSize: 12,
+                    ),
                   ),
+                  if (c.edema) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Edema bilateral nos pés é desnutrição aguda grave pela '
+                      'OMS, em qualquer z-score.',
+                      style: TextStyle(
+                        color: cores.textoSecundario,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, Routes.curvaCrescimento),
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      Routes.curvaCrescimento,
+                      arguments: r.criancaId,
+                    ),
                     child: const Text('Ver curva de crescimento ›'),
                   ),
                 ],
               ),
             ),
           ],
-          const SizedBox(height: 16),
-          _InfoBox(
-            icon: Icons.menu_book_outlined,
-            title: 'O que isso significa?',
-            color: AppColors.surface,
-            border: AppColors.successBorder,
-            child: Text(
-              ruim
-                  ? 'A criança apresenta sinais de desnutrição, identificados pelos indicadores de crescimento abaixo do esperado para a idade. Recomenda-se acompanhamento para avaliar sua evolução nutricional.'
-                  : 'O crescimento da criança está adequado para a idade, com todos os indicadores dentro da faixa de normalidade (valores ilustrativos).',
-              style: const TextStyle(
-                fontSize: 12,
-                height: 1.25,
-                color: AppColors.textBody,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _InfoBox(
-            icon: Icons.lightbulb_outline,
-            title: 'Orientações',
-            color: fundo,
-            border: AppColors.successBorder,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final t in [
-                  'Mantenha uma alimentação equilibrada.',
-                  'Continue o acompanhamento periódico.',
-                  'Estimule atividades físicas adequadas para a idade.',
-                  'Em caso de dúvidas, consulte um profissional de saúde.',
-                ])
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(
-                      '•  $t',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textBody,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
         ],
       ),
       bottomNavigationBar: const AppBottomNav(),
@@ -237,44 +336,76 @@ class _ResultadoScreenState extends State<ResultadoScreen> {
 }
 
 class _IndicadorRow extends StatelessWidget {
-  const _IndicadorRow(this.ind);
-  final Indicador ind;
+  _IndicadorRow.classificado(ClassificacaoIndicador ind)
+    : nome = ind.indicador.nome,
+      zScore = ind.zScore,
+      descricao = ind.diagnostico,
+      situacao = situacaoDe(ind.gravidade, ind.desvio);
+
+  _IndicadorRow.indisponivel(IndicadorIndisponivel ind)
+    : nome = ind.indicador.nome,
+      zScore = null,
+      descricao = ind.motivo,
+      situacao = null;
+
+  final String nome;
+  final double? zScore;
+  final String descricao;
+  final Situacao? situacao;
 
   @override
   Widget build(BuildContext context) {
-    final z = formatarDecimal(ind.zScore);
+    final cores = context.cores;
+    final z = zScore;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              ind.nome,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  nome,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    if (situacao != null) ...[
+                      Icon(Icons.circle, size: 8, color: situacao!.color),
+                      const SizedBox(width: 6),
+                    ],
+                    Expanded(
+                      child: Text(
+                        descricao,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: situacao?.textColor ?? cores.textoSecundario,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
+          const SizedBox(width: 8),
           Container(
-            width: 61,
-            height: 36,
+            constraints: const BoxConstraints(minWidth: 61, minHeight: 36),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
-              color: ind.situacao.background,
+              color: situacao?.background ?? cores.fundo,
               borderRadius: BorderRadius.circular(15),
             ),
             alignment: Alignment.centerRight,
             child: Text(
-              z,
+              z == null ? '—' : formatarDecimal(z, casas: 2),
+              semanticsLabel: z == null ? 'indisponível' : null,
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Icon(Icons.circle, size: 7, color: ind.situacao.color),
-          const SizedBox(width: 6),
-          SizedBox(
-            width: 62,
-            child: Text(
-              ind.situacao.label,
-              style: const TextStyle(fontSize: 12, color: AppColors.textBody),
             ),
           ),
         ],
@@ -287,21 +418,17 @@ class _InfoBox extends StatelessWidget {
   const _InfoBox({
     required this.icon,
     required this.title,
-    required this.color,
-    required this.border,
     required this.child,
   });
 
   final IconData icon;
   final String title;
-  final Color color, border;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      color: color,
-      borderColor: border,
+      borderColor: AppColors.successBorder,
       radius: 11,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,11 +437,13 @@ class _InfoBox extends StatelessWidget {
             children: [
               Icon(icon, size: 24),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ],

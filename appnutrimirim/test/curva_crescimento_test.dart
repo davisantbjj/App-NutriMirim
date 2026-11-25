@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'antropometria_oms_test.dart' show lerTabelas;
 import 'fontes.dart';
 import 'package:appnutrimirim/data/curvas_referencia.dart';
 import 'package:appnutrimirim/data/mock_data.dart';
 import 'package:appnutrimirim/data/models.dart';
-import 'package:appnutrimirim/screens/avaliacao/resultado_screen.dart';
 import 'package:appnutrimirim/screens/crianca/curva_crescimento_screen.dart';
+import 'package:appnutrimirim/services/antropometria_oms.dart';
+import 'package:appnutrimirim/services/zscore_avaliacao.dart';
 import 'package:appnutrimirim/theme/app_theme.dart';
 
 /// Abre [w] em 360 dp de largura, com [args] na rota e a fonte em [escala].
@@ -127,52 +129,153 @@ void main() {
         expect(a.situacao, isNot(Situacao.normal), reason: a.criancaId);
       }
     });
+  });
 
-    test('curva de referência separa menina e menino', () {
-      final f = CurvaReferencia.de(IndicadorCurva.pesoIdade, Sexo.feminino);
-      final m = CurvaReferencia.de(IndicadorCurva.pesoIdade, Sexo.masculino);
-      expect(f.linhas[0], isNot(equals(m.linhas[0])));
+  group('Curva com as tabelas da OMS', () {
+    late TabelasOms tabelas;
+    setUpAll(() => tabelas = lerTabelas());
+
+    test('linha 0 é a mediana da OMS e separa menina e menino', () {
+      final f = CurvaReferencia.oms(
+        tabelas,
+        IndicadorCurva.pesoIdade,
+        Sexo.feminino,
+      );
+      final m = CurvaReferencia.oms(
+        tabelas,
+        IndicadorCurva.pesoIdade,
+        Sexo.masculino,
+      );
+      // Medianas ao nascer da tabela weianthro (OMS 2006).
+      expect(f.linhas[0]!.first, closeTo(3.2322, 1e-4));
+      expect(m.linhas[0]!.first, closeTo(3.3464, 1e-4));
       for (final ind in IndicadorCurva.values) {
         for (final s in Sexo.values) {
-          final r = CurvaReferencia.de(ind, s);
-          for (final l in r.linhas.values) {
-            expect(l.length, r.xs.length);
+          for (final comprimento in [true, false]) {
+            final r = CurvaReferencia.oms(
+              tabelas,
+              ind,
+              s,
+              comprimento: comprimento,
+            );
+            expect(r.xs, isNotEmpty);
+            for (final z in zScoresDaCurva) {
+              expect(r.linhas[z]!.length, r.xs.length);
+            }
+            // As linhas ficam em ordem: -3 < -2 < 0 < +2 < +3.
+            for (var i = 0; i < r.xs.length; i++) {
+              expect(r.linhas[-3]![i], lessThan(r.linhas[-2]![i]));
+              expect(r.linhas[2]![i], lessThan(r.linhas[3]![i]));
+            }
           }
         }
       }
     });
-  });
 
-  group('Resultado — variação Desnutrição', () {
-    testWidgets('mostra título, z-scores e orientação de desnutrição', (
+    test('P/E por comprimento vai de 45 a 110 cm e por altura de 65 a 120', () {
+      final c = CurvaReferencia.oms(
+        tabelas,
+        IndicadorCurva.pesoAltura,
+        Sexo.feminino,
+      );
+      final a = CurvaReferencia.oms(
+        tabelas,
+        IndicadorCurva.pesoAltura,
+        Sexo.feminino,
+        comprimento: false,
+      );
+      expect((c.xMin, c.xMax), (45, 110));
+      expect((a.xMin, a.xMax), (65, 120));
+    });
+
+    test('percentil do z-score', () {
+      expect(percentilDeZ(0), closeTo(50, 1e-6));
+      expect(percentilDeZ(-2), closeTo(2.275, 1e-3));
+      expect(formatarPercentil(1), 'P84,1');
+      expect(formatarPercentil(-4), '< P0,1');
+      expect(formatarPercentil(4), '> P99,9');
+    });
+
+    test('z-score gravado na avaliação tem prioridade sobre o cálculo', () {
+      final c = MockData.criancaDestaque;
+      final a = MockData.ultimaAvaliacaoDe(c.id)!;
+      final gravada = a.copyWith(
+        indicadores: {'pi': const Indicador('P/I', -1.23, Situacao.normal)},
+      );
+      expect(
+        zScoreDaAvaliacao(tabelas, c, gravada, IndicadorOms.pesoIdade),
+        -1.23,
+      );
+      expect(
+        zScoreDaAvaliacao(tabelas, c, a, IndicadorOms.pesoIdade),
+        isNotNull,
+      );
+      expect(
+        zScoreDaAvaliacao(
+          tabelas,
+          c.copyWith(limparNascimento: true),
+          a,
+          IndicadorOms.pesoIdade,
+        ),
+        isNull,
+      );
+    });
+
+    testWidgets('mostra o z-score e o percentil da aba na última avaliação', (
       t,
     ) async {
       await _ir(
         t,
-        const ResultadoScreen(),
-        args: MockData.resultadoDesnutricao,
+        CurvaCrescimentoScreen(carregarTabelas: () async => tabelas),
+        args: 'c0',
       );
-      expect(find.text('Desnutrição'), findsOneWidget);
-      expect(find.text('!'), findsOneWidget);
-      expect(find.byIcon(Icons.check), findsNothing);
-      expect(
-        find.textContaining('abaixo da faixa esperada para a idade'),
-        findsOneWidget,
-      );
-      expect(find.text('-2,5'), findsOneWidget);
-      expect(find.text('Abaixo da faixa'), findsOneWidget);
-      expect(
-        find.textContaining('sinais de desnutrição', skipOffstage: false),
-        findsOneWidget,
-      );
+      final c = MockData.criancaDestaque;
+      final a = MockData.ultimaAvaliacaoDe(c.id)!;
+      for (final (aba, ind) in [
+        ('Peso/Idade', IndicadorOms.pesoIdade),
+        ('Altura/Idade', IndicadorOms.alturaIdade),
+        ('Peso/Altura', IndicadorOms.pesoAltura),
+      ]) {
+        await t.tap(find.text(aba));
+        await t.pumpAndSettle();
+        final z = zScoreDaAvaliacao(tabelas, c, a, ind)!;
+        expect(
+          find.text(
+            z.toStringAsFixed(2).replaceAll('.', ','),
+            skipOffstage: false,
+          ),
+          findsOneWidget,
+          reason: aba,
+        );
+        expect(
+          find.text(formatarPercentil(z), skipOffstage: false),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            'Z-score e percentil de $aba (OMS 2006).',
+            skipOffstage: false,
+          ),
+          findsOneWidget,
+        );
+      }
+      expect(find.textContaining('Não foi possível carregar'), findsNothing);
       expect(t.takeException(), isNull);
     });
 
-    testWidgets('a variação Normal não mostra o alerta', (t) async {
-      await _ir(t, const ResultadoScreen(), args: MockData.resultadoNormal);
-      expect(find.text('Normal'), findsWidgets);
-      expect(find.text('Desnutrição'), findsNothing);
-      expect(find.text('!'), findsNothing);
+    testWidgets('falha ao carregar as tabelas avisa sem quebrar a tela', (
+      t,
+    ) async {
+      await _ir(
+        t,
+        CurvaCrescimentoScreen(carregarTabelas: () async => throw Exception()),
+        args: 'c0',
+      );
+      expect(
+        find.text('Não foi possível carregar as curvas da OMS.'),
+        findsOneWidget,
+      );
+      expect(find.text('—', skipOffstage: false), findsWidgets);
     });
   });
 }
