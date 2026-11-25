@@ -201,6 +201,31 @@ class TabelasOms {
       _pesoAltura,
       _imcIdade;
 
+  /// Medida da curva de referência no z-score [z] (para desenhar as linhas
+  /// -3, -2, 0, +2 e +3 da Curva). [eixo] é a idade em dias (P/I, E/I e
+  /// IMC/I) ou o comprimento/altura em cm (P/E); [comprimento] escolhe a
+  /// tabela de P/E: por comprimento (45 a 110 cm, menores de 2 anos) ou por
+  /// altura (65 a 120 cm). Nulo fora do domínio da tabela.
+  double? valorReferencia({
+    required IndicadorOms indicador,
+    required SexoOms sexo,
+    required double eixo,
+    required double z,
+    bool comprimento = true,
+  }) {
+    final tabela = switch (indicador) {
+      IndicadorOms.pesoIdade => _pesoIdade,
+      IndicadorOms.alturaIdade => _alturaIdade,
+      IndicadorOms.pesoAltura => comprimento ? _pesoComprimento : _pesoAltura,
+      IndicadorOms.imcIdade => _imcIdade,
+    };
+    final lms = tabela.obter(sexo, eixo);
+    if (lms == null) return null;
+    return lms.l == 0
+        ? lms.m * math.exp(lms.s * z)
+        : lms.m * math.pow(1 + lms.l * lms.s * z, 1 / lms.l);
+  }
+
   ValidacaoAntropometrica validar({
     required SexoOms? sexo,
     required DateTime? nascimento,
