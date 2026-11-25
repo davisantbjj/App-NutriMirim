@@ -13,6 +13,7 @@ import 'package:appnutrimirim/screens/crianca/dados_crianca_screen.dart';
 import 'package:appnutrimirim/screens/crianca/lista_criancas_screen.dart';
 import 'package:appnutrimirim/screens/historico_screen.dart';
 import 'package:appnutrimirim/theme/app_theme.dart';
+import 'package:appnutrimirim/widgets/bottom_nav.dart';
 import 'package:appnutrimirim/widgets/estado_assincrono.dart';
 
 // ignore_for_file: subtype_of_sealed_class
@@ -207,6 +208,31 @@ void main() {
       expect(t.takeException(), isNull);
     });
 
+    testWidgets('histórico de uma criança', (t) async {
+      await _ir(t, const HistoricoScreen(), args: 'c1');
+      expect(
+        find.text('Não foi possível carregar o histórico.'),
+        findsOneWidget,
+      );
+      expect(find.byType(CarregandoCentro), findsNothing);
+      expect(find.text('Nenhuma avaliação registrada.'), findsNothing);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('erro no histórico mantém a barra inferior', (t) async {
+      await _ir(t, const HistoricoScreen());
+      expect(find.byType(AppBottomNav), findsOneWidget);
+      expect(find.widgetWithText(AppBar, 'Histórico'), findsOneWidget);
+      expect(find.byType(MensagemCentro), findsOneWidget);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('erro no histórico em 360 dp com fonte 2x', (t) async {
+      await _ir(t, const HistoricoScreen(), escala: 2);
+      expect(find.byType(MensagemCentro), findsOneWidget);
+      expect(t.takeException(), isNull);
+    });
+
     testWidgets('dados da criança', (t) async {
       await _ir(t, const DadosCriancaScreen(), args: 'c1');
       expect(
@@ -252,6 +278,13 @@ void main() {
       await _ir(t, const HistoricoScreen(), assentar: false);
       expect(find.byType(CarregandoCentro), findsOneWidget);
       expect(find.textContaining('Não foi possível'), findsNothing);
+    });
+
+    testWidgets('histórico de uma criança', (t) async {
+      await _ir(t, const HistoricoScreen(), args: 'c1', assentar: false);
+      expect(find.byType(CarregandoCentro), findsOneWidget);
+      expect(find.textContaining('Não foi possível'), findsNothing);
+      expect(find.text('Nenhuma avaliação registrada.'), findsNothing);
     });
 
     testWidgets('dados da criança', (t) async {
