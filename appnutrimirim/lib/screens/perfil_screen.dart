@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
 import '../repositories/repositorios.dart';
+import '../utils/formatters.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
 
@@ -19,6 +20,30 @@ class PerfilScreen extends StatefulWidget {
 
 class _PerfilScreenState extends State<PerfilScreen> {
   bool _notificacoes = true;
+  bool _sincronizando = false;
+  String? _ultimaSync;
+
+  Future<void> _sincronizar() async {
+    if (_sincronizando) return;
+    setState(() => _sincronizando = true);
+    final sincronizado = await sincronizarSessao();
+    if (!mounted) return;
+    setState(() {
+      _sincronizando = false;
+      if (sincronizado) {
+        _ultimaSync = formatarDataHora(DateTime.now());
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          sincronizado
+              ? 'Dados sincronizados.'
+              : 'Há registros que ainda não foram enviados.',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +146,43 @@ class _PerfilScreenState extends State<PerfilScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          AppCard(
+            child: Row(
+              children: [
+                Icon(Icons.cloud_done_outlined, color: cores.icone, size: 24),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Última sincronização',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: cores.texto,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        _ultimaSync ?? 'Ainda não sincronizado',
+                        style: TextStyle(
+                          color: cores.textoSecundario,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: _sincronizando ? null : _sincronizar,
+                  child: Text(
+                    _sincronizando ? 'Sincronizando...' : 'Sincronizar',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
           const Text(
             'Preferências',

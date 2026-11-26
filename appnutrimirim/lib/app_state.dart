@@ -57,5 +57,8 @@ Future<void> sairDaConta() async {
   await authService.sair();
 }
 
+/// Confirma se os registros pendentes foram enviados ao servidor.
+Future<bool> sincronizarSessao() => sessaoService.semRegistrosPendentes();
+
 /// Volta os repositórios à memória e apaga o cache do Firestore (LGPD).
 Future<void> desligarSessao() => sessaoService.desligar();
