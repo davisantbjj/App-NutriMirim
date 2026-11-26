@@ -113,6 +113,20 @@ void main() {
     expect(find.text('UBS Centro'), findsWidgets);
   });
 
+  testWidgets('Perfil mostra e executa o botão de sincronização', (t) async {
+    await _ir(t, const PerfilScreen());
+
+    expect(find.text('Última sincronização'), findsOneWidget);
+    expect(find.text('Ainda não sincronizado'), findsOneWidget);
+    expect(find.text('Sincronizar'), findsOneWidget);
+
+    await t.tap(find.text('Sincronizar'));
+    await t.pumpAndSettle();
+
+    expect(find.text('Dados sincronizados.'), findsOneWidget);
+    expect(find.text('Ainda não sincronizado'), findsNothing);
+  });
+
   testWidgets('ACS vê opção de microárea e filtro da UBS', (t) async {
     Repositorios.usarMemoria(
       sessao: const SessaoProfissional(
