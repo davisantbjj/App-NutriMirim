@@ -2,3 +2,7 @@
 .claude/
 CLAUDE.md
 CLAUDE.local.md
+
+# Testes das regras do Firestore
+node_modules/
+*-debug.log

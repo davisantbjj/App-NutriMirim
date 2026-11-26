@@ -99,10 +99,13 @@ class MockData {
   ];
 
   /// Avaliação da criança em destaque (não aparece no Histórico do protótipo).
+  /// 10,2 kg para ficar coerente com a regra provisória (`peso < 10` é
+  /// desnutrição) e com a situação "Normal".
   static final _avaliacaoDestaque = Avaliacao(
+    id: 'a5',
     criancaId: 'c0',
     data: DateTime(2026, 8, 15),
-    pesoKg: 9.8,
+    pesoKg: 10.2,
     alturaCm: 85,
     situacao: Situacao.normal,
   );
@@ -110,6 +113,7 @@ class MockData {
   /// Avaliações exibidas no Histórico.
   static final List<Avaliacao> avaliacoes = List.unmodifiable(<Avaliacao>[
     Avaliacao(
+      id: 'a1',
       criancaId: 'c1',
       data: DateTime(2025, 1, 10),
       pesoKg: 12.5,
@@ -117,6 +121,7 @@ class MockData {
       situacao: Situacao.normal,
     ),
     Avaliacao(
+      id: 'a2',
       criancaId: 'c8',
       data: DateTime(2025, 1, 10),
       pesoKg: 12.1,
@@ -124,6 +129,7 @@ class MockData {
       situacao: Situacao.normal,
     ),
     Avaliacao(
+      id: 'a3',
       criancaId: 'c9',
       data: DateTime(2024, 11, 5),
       pesoKg: 9.8,
@@ -131,6 +137,7 @@ class MockData {
       situacao: Situacao.risco,
     ),
     Avaliacao(
+      id: 'a4',
       criancaId: 'c10',
       data: DateTime(2024, 9, 12),
       pesoKg: 11.2,
@@ -167,22 +174,4 @@ class MockData {
     final lista = avaliacoesDe(criancaId);
     return lista.isEmpty ? null : lista.first;
   }
-
-  static const resultadoNormal = ResultadoAvaliacao(
-    desnutricao: false,
-    indicadores: [
-      Indicador('Peso para idade (P/I)', -0.5, Situacao.normal),
-      Indicador('Estatura para idade (E/I)', -0.3, Situacao.normal),
-      Indicador('Peso para estatura (P/E)', 0.1, Situacao.normal),
-    ],
-  );
-
-  static const resultadoDesnutricao = ResultadoAvaliacao(
-    desnutricao: true,
-    indicadores: [
-      Indicador('Peso para idade (P/I)', -2.5, Situacao.abaixo),
-      Indicador('Estatura para idade (E/I)', -1.8, Situacao.atencao),
-      Indicador('Peso para estatura (P/E)', 0.1, Situacao.normal),
-    ],
-  );
 }

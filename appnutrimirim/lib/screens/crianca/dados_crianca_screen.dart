@@ -1,29 +1,52 @@
 import 'package:flutter/material.dart';
 
-import '../../data/mock_data.dart';
 import '../../data/models.dart';
 import '../../routes.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
+import '../../widgets/estado_assincrono.dart';
 import '../../utils/formatters.dart';
 
 /// TELA 10 — Dados da criança.
 class DadosCriancaScreen extends StatelessWidget {
   const DadosCriancaScreen({super.key});
 
+  /// Sem argumento mostra a criança em destaque (`c0`); id inexistente mostra
+  /// "Criança não encontrada".
   @override
   Widget build(BuildContext context) {
-    final arg = ModalRoute.of(context)?.settings.arguments as Crianca?;
-    final c = arg ?? MockData.criancaDestaque;
+    final arg = ModalRoute.of(context)?.settings.arguments;
+    return CriancaComAvaliacoes(
+      argumento: arg,
+      titulo: 'Dados da criança',
+      builder: (context, c, avaliacoes) => _conteudo(
+        context,
+        arg,
+        c,
+        avaliacoes.isEmpty ? null : avaliacoes.first,
+      ),
+    );
+  }
+
+  Widget _conteudo(
+    BuildContext context,
+    Object? arg,
+    Crianca c,
+    Avaliacao? ultima,
+  ) {
     final r = c.responsavel;
-    final ultima = MockData.ultimaAvaliacaoDe(c.id);
 
     return Scaffold(
       appBar: const BackAppBar(title: 'Dados da criança'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
         children: [
+          if (!c.ativa) ...[
+            const AvisoDesativado(),
+            const SizedBox(height: 12),
+          ],
           AppCard(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
             child: Column(
@@ -59,17 +82,22 @@ class DadosCriancaScreen extends StatelessWidget {
           ),
           Center(
             child: TextButton(
-              onPressed: () =>
-                  Navigator.pushNamed(context, Routes.cadastroCrianca),
+              onPressed: c.ativa
+                  ? () => Navigator.pushNamed(
+                      context,
+                      Routes.cadastroCrianca,
+                      arguments: c.id,
+                    )
+                  : null,
               child: const Text('Editar dados'),
             ),
           ),
           if (ultima == null)
-            const AppCard(
+            AppCard(
               child: Text(
                 'Sem avaliações registradas',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textMuted),
+                style: TextStyle(color: context.cores.textoSecundario),
               ),
             )
           else
@@ -78,7 +106,11 @@ class DadosCriancaScreen extends StatelessWidget {
               peso: formatarPeso(ultima.pesoKg),
               situacao: ultima.situacao,
               footer: TextButton(
-                onPressed: () => Navigator.pushNamed(context, Routes.historico),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  Routes.historico,
+                  arguments: c.id,
+                ),
                 child: const Text(
                   'Ver histórico',
                   style: TextStyle(
@@ -91,8 +123,11 @@ class DadosCriancaScreen extends StatelessWidget {
           const SizedBox(height: 18),
           _ArrowButton(
             label: 'Curva de Crescimento',
-            onPressed: () =>
-                Navigator.pushNamed(context, Routes.curvaCrescimento),
+            onPressed: () => Navigator.pushNamed(
+              context,
+              Routes.curvaCrescimento,
+              arguments: c.id,
+            ),
           ),
           const SizedBox(height: 18),
           const Text(
@@ -122,23 +157,28 @@ class DadosCriancaScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         'CPF: ${r.cpfMascarado}',
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
+                        style: TextStyle(
+                          color: context.cores.textoSecundario,
                           fontSize: 12,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      _contato(Icons.phone_outlined, r.telefone),
+                      _contato(context, Icons.phone_outlined, r.telefone),
                       const SizedBox(height: 6),
-                      _contato(Icons.mail_outline, r.email),
+                      _contato(context, Icons.mail_outline, r.email),
                     ],
             ),
           ),
           const SizedBox(height: 18),
           _ArrowButton(
             label: 'Registrar Avaliação',
-            onPressed: () =>
-                Navigator.pushNamed(context, Routes.registroMedidas),
+            onPressed: c.ativa
+                ? () => Navigator.pushNamed(
+                    context,
+                    Routes.registroMedidas,
+                    arguments: arg is Crianca ? c : c.id,
+                  )
+                : null,
           ),
         ],
       ),
@@ -146,14 +186,14 @@ class DadosCriancaScreen extends StatelessWidget {
     );
   }
 
-  Widget _contato(IconData icon, String text) => Row(
+  Widget _contato(BuildContext context, IconData icon, String text) => Row(
     children: [
-      Icon(icon, size: 16, color: AppColors.textMuted),
+      Icon(icon, size: 16, color: context.cores.icone),
       const SizedBox(width: 8),
       Expanded(
         child: Text(
           text,
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          style: TextStyle(color: context.cores.textoSecundario, fontSize: 12),
         ),
       ),
     ],
@@ -163,7 +203,7 @@ class DadosCriancaScreen extends StatelessWidget {
 class _ArrowButton extends StatelessWidget {
   const _ArrowButton({required this.label, required this.onPressed});
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {

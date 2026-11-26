@@ -6,6 +6,10 @@ String _dois(int v) => v.toString().padLeft(2, '0');
 String formatarDecimal(double valor, {int casas = 1}) =>
     valor.toStringAsFixed(casas).replaceAll('.', ',');
 
+/// Mantém a precisão da medida gravada ao preencher um campo de edição.
+String formatarMedidaParaEdicao(double valor) =>
+    valor.toString().replaceAll('.', ',');
+
 /// Como [formatarDecimal], mas sem casas quando o valor é inteiro:
 /// 85.0 -> `85`, 12.5 -> `12,5`.
 String formatarNumero(double valor, {int casas = 1}) {

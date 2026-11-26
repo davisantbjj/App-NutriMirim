@@ -1,41 +1,42 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import '../../data/curvas_referencia.dart';
 import '../../data/models.dart';
+import '../../data/oms_assets.dart';
+import '../../services/antropometria_oms.dart';
+import '../../services/zscore_avaliacao.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
+import '../../utils/formatters.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
+import '../../widgets/estado_assincrono.dart';
 
-/// Dados de um gráfico de crescimento: eixo X, curvas de Z-score e ponto atual.
+/// Dados de um gráfico: curvas de referência, medidas da criança e textos.
 class _ChartSpec {
   const _ChartSpec({
     required this.title,
     required this.xLabel,
-    required this.xs,
-    required this.curves,
-    required this.yMin,
-    required this.yMax,
-    required this.yStep,
-    required this.xTicks,
-    required this.point,
-    required this.tooltip,
+    required this.ref,
+    required this.pontos,
+    this.tooltip,
     this.xTickLabels = const {},
   });
 
   final String title, xLabel;
-  final List<double> xs;
-  final Map<int, List<double>> curves; // z-score -> valores
-  final double yMin, yMax, yStep;
-  final List<double> xTicks;
+  final CurvaReferencia ref;
+
+  /// Medidas da criança, da mais antiga para a mais recente.
+  final List<Offset> pontos;
+
+  /// Linhas do balão da medida mais recente (nulo quando não há ponto).
+  final List<String>? tooltip;
   final Map<int, String> xTickLabels;
-  final Offset point;
-  final List<String> tooltip;
 }
 
-// Valores aproximados das curvas OMS (meninas, 0 a 5 anos).
-const _meses = <double>[0, 6, 12, 24, 36, 48, 60];
-const _tickMeses = <double>[0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60];
 const _labelsMeses = {
   0: 'Nascimento',
   12: '1 ano',
@@ -45,68 +46,18 @@ const _labelsMeses = {
   60: '5 anos',
 };
 
-const _pesoIdade = _ChartSpec(
-  title: 'Peso para idade (kg)',
-  xLabel: 'Idade (meses)',
-  xs: _meses,
-  curves: {
-    3: [4.8, 10.6, 13.1, 17.0, 20.9, 25.2, 29.5],
-    2: [4.2, 9.3, 11.5, 14.8, 18.1, 21.5, 24.9],
-    0: [3.2, 7.3, 8.9, 11.5, 13.9, 16.1, 18.2],
-    -2: [2.4, 5.7, 7.0, 9.0, 10.8, 12.3, 13.7],
-    -3: [2.0, 5.1, 6.3, 8.1, 9.6, 10.9, 12.1],
-  },
-  yMin: 0,
-  yMax: 30,
-  yStep: 5,
-  xTicks: _tickMeses,
-  xTickLabels: _labelsMeses,
-  point: Offset(24, 9.8),
-  tooltip: ['24 meses', '9,8 kg', '15/08/2026'],
-);
-
-const _alturaIdade = _ChartSpec(
-  title: 'Altura para idade (cm)',
-  xLabel: 'Idade (meses)',
-  xs: _meses,
-  curves: {
-    3: [54.7, 71.6, 81.7, 95.2, 105.0, 113.0, 120.0],
-    2: [52.9, 69.6, 79.2, 92.0, 101.4, 109.0, 115.7],
-    0: [49.1, 65.7, 74.0, 85.7, 95.1, 102.7, 109.4],
-    -2: [45.4, 61.8, 68.9, 79.3, 88.0, 95.0, 101.0],
-    -3: [43.6, 59.9, 66.3, 76.0, 84.0, 91.0, 97.0],
-  },
-  yMin: 40,
-  yMax: 125,
-  yStep: 10,
-  xTicks: _tickMeses,
-  xTickLabels: _labelsMeses,
-  point: Offset(24, 82),
-  tooltip: ['24 meses', '82 cm', '15/08/2026'],
-);
-
-const _pesoAltura = _ChartSpec(
-  title: 'Peso para altura (kg)',
-  xLabel: 'Altura (cm)',
-  xs: <double>[45, 60, 75, 90, 105, 120],
-  curves: {
-    3: [3.0, 7.1, 11.0, 15.3, 20.2, 27.0],
-    2: [2.7, 6.4, 10.0, 13.9, 18.4, 24.5],
-    0: [2.5, 5.5, 8.9, 12.1, 16.0, 21.2],
-    -2: [2.0, 4.8, 7.7, 10.6, 14.0, 18.5],
-    -3: [1.9, 4.5, 7.2, 10.0, 13.1, 17.3],
-  },
-  yMin: 0,
-  yMax: 30,
-  yStep: 5,
-  xTicks: <double>[45, 60, 75, 90, 105, 120],
-  point: Offset(82, 9.8),
-  tooltip: ['82 cm', '9,8 kg', '15/08/2026'],
-);
+String _meses(int m) => m == 1 ? '1 mês' : '$m meses';
 
 /// TELA 08 — Curva de Crescimento.
+///
+/// Recebe a criança pela rota: o `id` (recomendado) ou o objeto [Crianca].
+/// Sem argumento, mostra a criança em destaque (`c0`); os dados vêm dos
+/// repositórios. As linhas de referência e o z-score saem das tabelas LMS da
+/// OMS 2006 ([carregarTabelas], por padrão os assets do app).
 class CurvaCrescimentoScreen extends StatefulWidget {
-  const CurvaCrescimentoScreen({super.key});
+  const CurvaCrescimentoScreen({super.key, this.carregarTabelas});
+
+  final Future<TabelasOms> Function()? carregarTabelas;
 
   @override
   State<CurvaCrescimentoScreen> createState() => _CurvaCrescimentoScreenState();
@@ -115,11 +66,150 @@ class CurvaCrescimentoScreen extends StatefulWidget {
 class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
   int _tab = 0;
   static const _tabs = ['Peso/Idade', 'Altura/Idade', 'Peso/Altura'];
-  static const _specs = [_pesoIdade, _alturaIdade, _pesoAltura];
+
+  TabelasOms? _tabelas;
+  bool _erroTabelas = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarTabelas();
+  }
+
+  Future<void> _carregarTabelas() async {
+    try {
+      final t = await (widget.carregarTabelas ?? carregarTabelasOms)();
+      if (mounted) setState(() => _tabelas = t);
+    } catch (_) {
+      if (mounted) setState(() => _erroTabelas = true);
+    }
+  }
+
+  /// P/E usa a tabela por comprimento antes dos 2 anos e por altura depois
+  /// (pela última avaliação); sem nascimento, pela posição registrada.
+  bool _porComprimento(Crianca c, Avaliacao? ultima) {
+    if (ultima == null) return true;
+    final nasc = c.nascimento;
+    if (nasc != null) return idadeEmDias(nasc, ultima.data) < 731;
+    return ultima.tipoMedida != 'em_pe';
+  }
+
+  /// Monta o gráfico do indicador com as avaliações da criança.
+  _ChartSpec _spec(IndicadorCurva ind, Crianca c, List<Avaliacao> avs) {
+    final comprimento = _porComprimento(c, avs.isEmpty ? null : avs.first);
+    final tabelas = _tabelas;
+    final ref = tabelas == null
+        ? CurvaReferencia.eixos(ind, comprimento: comprimento)
+        : CurvaReferencia.oms(tabelas, ind, c.sexo, comprimento: comprimento);
+    final porIdade = ind != IndicadorCurva.pesoAltura;
+    final nasc = c.nascimento;
+
+    // Da mais antiga para a mais recente, para ligar os pontos em ordem.
+    final pontos = <Offset>[];
+    Avaliacao? ultima;
+    for (final a in avs.reversed) {
+      final double x;
+      if (porIdade) {
+        if (nasc == null) continue;
+        x = idadeEmMeses(nasc, hoje: a.data).toDouble();
+      } else {
+        x = a.alturaCm;
+      }
+      final y = ind == IndicadorCurva.alturaIdade ? a.alturaCm : a.pesoKg;
+      if (!ref.contem(x, y)) continue;
+      pontos.add(Offset(x, y));
+      ultima = a;
+    }
+
+    List<String>? tooltip;
+    if (ultima != null) {
+      final xTexto = porIdade
+          ? _meses(idadeEmMeses(nasc!, hoje: ultima.data))
+          : formatarAltura(ultima.alturaCm);
+      final yTexto = ind == IndicadorCurva.alturaIdade
+          ? formatarAltura(ultima.alturaCm)
+          : formatarPeso(ultima.pesoKg);
+      tooltip = [xTexto, yTexto, formatarData(ultima.data)];
+    }
+
+    return switch (ind) {
+      IndicadorCurva.pesoIdade => _ChartSpec(
+        title: 'Peso para idade (kg)',
+        xLabel: 'Idade (meses)',
+        ref: ref,
+        pontos: pontos,
+        tooltip: tooltip,
+        xTickLabels: _labelsMeses,
+      ),
+      IndicadorCurva.alturaIdade => _ChartSpec(
+        title: 'Altura para idade (cm)',
+        xLabel: 'Idade (meses)',
+        ref: ref,
+        pontos: pontos,
+        tooltip: tooltip,
+        xTickLabels: _labelsMeses,
+      ),
+      IndicadorCurva.pesoAltura => _ChartSpec(
+        title: 'Peso para altura (kg)',
+        xLabel: 'Altura (cm)',
+        ref: ref,
+        pontos: pontos,
+        tooltip: tooltip,
+      ),
+    };
+  }
+
+  /// Por que a medida não aparece no gráfico (nulo quando aparece).
+  String? _aviso(_ChartSpec spec, Crianca c, List<Avaliacao> avs) {
+    if (spec.tooltip != null) return null;
+    if (avs.isEmpty) return 'Sem avaliações registradas para marcar na curva.';
+    if (_tab != IndicadorCurva.pesoAltura.index && c.nascimento == null) {
+      return 'Data de nascimento não informada: não é possível marcar a '
+          'medida por idade.';
+    }
+    return 'A medida está fora da faixa deste gráfico (0 a 5 anos).';
+  }
+
+  /// Z-score, percentil e situação da última avaliação no indicador da aba.
+  ({String z, String percentil, Situacao? situacao}) _zDaUltima(
+    Crianca c,
+    Avaliacao ultima,
+  ) {
+    final tabelas = _tabelas;
+    final ind = IndicadorCurva.values[_tab].oms;
+    final z = tabelas == null
+        ? null
+        : zScoreDaAvaliacao(tabelas, c, ultima, ind);
+    if (z == null) return (z: '—', percentil: '—', situacao: null);
+    return (
+      z: formatarDecimal(z, casas: 2),
+      percentil: formatarPercentil(z),
+      situacao: situacaoDoZScore(ind, z),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final spec = _specs[_tab];
+    return CriancaComAvaliacoes(
+      argumento: ModalRoute.of(context)?.settings.arguments,
+      titulo: 'Curva de Crescimento',
+      builder: _conteudo,
+    );
+  }
+
+  Widget _conteudo(BuildContext context, Crianca c, List<Avaliacao> avs) {
+    final ultima = avs.isEmpty ? null : avs.first;
+    final spec = _spec(IndicadorCurva.values[_tab], c, avs);
+    final aviso = _aviso(spec, c, avs);
+    final cores = context.cores;
+    final zUltima = ultima == null ? null : _zDaUltima(c, ultima);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final sexo = c.sexo == Sexo.feminino ? 'Menina' : 'Menino';
+
+    final idadeMeses = (ultima != null && c.nascimento != null)
+        ? idadeEmMeses(c.nascimento!, hoje: ultima.data)
+        : null;
+
     return Scaffold(
       appBar: const BackAppBar(
         title: 'Curva de Crescimento',
@@ -145,42 +235,102 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
               children: [
                 Text(
                   spec.title,
-                  style: const TextStyle(
-                    color: Color(0xFF0F1C2E),
+                  style: TextStyle(
+                    color: cores.texto,
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                   ),
                 ),
-                const Text(
-                  'Menina • 0 a 5 anos',
+                Text(
+                  c.nome,
                   style: TextStyle(
-                    color: AppColors.textMuted,
+                    color: cores.texto,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  '$sexo • 0 a 5 anos',
+                  style: TextStyle(
+                    color: cores.textoSecundario,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
                 ),
                 const SizedBox(height: 8),
-                AspectRatio(
-                  aspectRatio: .95,
-                  child: Semantics(
-                    label:
-                        '${spec.title}. Medida atual: ${spec.tooltip.join(', ')}',
-                    child: CustomPaint(painter: _GrowthChartPainter(spec)),
-                  ),
+                LayoutBuilder(
+                  builder: (context, box) {
+                    // Com fonte maior, o gráfico cresce para caber os rótulos.
+                    final escala = textScaler.scale(12) / 12;
+                    final altura =
+                        box.maxWidth / .95 + math.max(0.0, escala - 1) * 80;
+                    return Semantics(
+                      label: [
+                        spec.title,
+                        c.nome,
+                        if (spec.tooltip != null)
+                          'Medida atual: ${spec.tooltip!.join(', ')}'
+                        else
+                          ?aviso,
+                      ].join('. '),
+                      child: SizedBox(
+                        width: box.maxWidth,
+                        height: altura,
+                        child: CustomPaint(
+                          painter: _GrowthChartPainter(spec, textScaler, cores),
+                        ),
+                      ),
+                    );
+                  },
                 ),
+                if (aviso != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    aviso,
+                    style: TextStyle(
+                      color: cores.textoSecundario,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+                if (_erroTabelas) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Não foi possível carregar as curvas da OMS.',
+                    style: TextStyle(
+                      color: cores.textoSecundario,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
           const SizedBox(height: 22),
-          const LastEvaluationCard(
-            data: '15/08/2026',
-            idade: '24 meses',
-            idadeSub: '(2 anos)',
-            peso: '9,8 kg',
-            zScore: '-1,31',
-            percentil: '10º',
-            situacao: Situacao.normal,
-          ),
+          if (ultima == null)
+            AppCard(
+              child: Text(
+                'Sem avaliações registradas',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: cores.textoSecundario),
+              ),
+            )
+          else
+            LastEvaluationCard(
+              data: formatarData(ultima.data),
+              idade: idadeMeses == null ? '—' : _meses(idadeMeses),
+              idadeSub: (idadeMeses != null && idadeMeses >= 24)
+                  ? '(${formatarIdade(c.nascimento!, hoje: ultima.data)})'
+                  : null,
+              peso: formatarPeso(ultima.pesoKg),
+              zScore: zUltima!.z,
+              percentil: zUltima.percentil,
+              situacao: zUltima.situacao ?? ultima.situacao,
+              footer: Text(
+                'Z-score e percentil de ${_tabs[_tab]} (OMS 2006).',
+                style: TextStyle(color: cores.textoSecundario, fontSize: 12),
+              ),
+            ),
           const SizedBox(height: 22),
           OutlinedButton(
             style: OutlinedButton.styleFrom(
@@ -206,6 +356,7 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
 
   Widget _tabButton(int i) {
     final selected = i == _tab;
+    final cores = context.cores;
     // Aparência de 34 dp de altura, com área tocável de 48 dp.
     return Semantics(
       button: true,
@@ -220,10 +371,10 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
               height: 34,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: selected ? AppColors.primary : AppColors.surface,
+                color: selected ? AppColors.primary : cores.superficie,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: selected ? AppColors.primary : AppColors.border,
+                  color: selected ? AppColors.primary : cores.borda,
                 ),
               ),
               child: FittedBox(
@@ -232,8 +383,8 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
                   _tabs[i],
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                    color: selected ? Colors.white : AppColors.textMuted,
+                    fontSize: 12,
+                    color: selected ? Colors.white : cores.textoSecundario,
                   ),
                 ),
               ),
@@ -246,9 +397,13 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
 }
 
 class _GrowthChartPainter extends CustomPainter {
-  _GrowthChartPainter(this.spec);
+  _GrowthChartPainter(this.spec, this.textScaler, this.cores)
+    : _labelStyle = TextStyle(color: cores.textoSecundario, fontSize: 12);
   final _ChartSpec spec;
+  final TextScaler textScaler;
+  final AppPalette cores;
 
+  /// Cor das linhas (só desenho).
   static const _curveColor = {
     3: Color(0xFFFC0000),
     2: Color(0xFFFCB903),
@@ -257,81 +412,140 @@ class _GrowthChartPainter extends CustomPainter {
     -3: Color(0xFFFC0000),
   };
 
+  /// Cor dos rótulos das linhas: tons escuros com contraste AA sobre branco.
+  static const _labelColor = {
+    3: AppColors.statusBadText,
+    2: AppColors.statusAttentionText,
+    0: AppColors.statusNormalText,
+    -2: AppColors.statusAttentionText,
+    -3: AppColors.statusBadText,
+  };
+
+  static const _ponto = Color(0xFF1A73E8);
+
+  // textoSecundario tem 5,1:1 sobre branco (o textHint anterior, 3,7:1).
+  final TextStyle _labelStyle;
+
+  TextPainter _tp(String s, TextStyle style) => TextPainter(
+    text: TextSpan(
+      text: s,
+      style: style.copyWith(fontFamily: 'Almarai'),
+    ),
+    textDirection: ui.TextDirection.ltr,
+    textScaler: textScaler,
+  )..layout();
+
   @override
   void paint(Canvas canvas, Size size) {
-    const left = 34.0, right = 20.0, top = 6.0, bottom = 52.0;
+    final ref = spec.ref;
+    final xMin = ref.xMin, xMax = ref.xMax, yMin = ref.yMin;
+
+    // Rótulos medidos antes, para as margens acompanharem o tamanho da fonte.
+    final yLabels = <double, TextPainter>{
+      for (var y = yMin; y <= ref.yMax + .01; y += ref.yStep)
+        y: _tp(y.toStringAsFixed(0), _labelStyle),
+    };
+    final xLabels = {
+      for (final x in ref.xTicks) x: _tp(x.toStringAsFixed(0), _labelStyle),
+    };
+    final extraStyle = _labelStyle;
+    final extras = <double, TextPainter>{
+      for (final x in ref.xTicks)
+        if (spec.xTickLabels[x.round()] case final s?) x: _tp(s, extraStyle),
+    };
+    final zLabels = <int, TextPainter>{
+      for (final z in ref.linhas.keys)
+        z: _tp(
+          z > 0 ? '+$z' : '$z',
+          TextStyle(
+            color: _labelColor[z],
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+    };
+    final titulo = _tp(spec.xLabel, _labelStyle.copyWith(fontSize: 12));
+
+    double maxW(Iterable<TextPainter> l) =>
+        l.fold(0, (m, tp) => math.max(m, tp.width));
+    double maxH(Iterable<TextPainter> l) =>
+        l.fold(0, (m, tp) => math.max(m, tp.height));
+
+    final left = maxW(yLabels.values) + 8;
+    final right = maxW(zLabels.values) + 8;
+    final top = math.max(6.0, maxH(yLabels.values) / 2);
+    final tickH = maxH(xLabels.values);
+    final extraH = extras.isEmpty ? 0.0 : maxH(extras.values) + 4;
+    final bottom = 4 + tickH + extraH + 8 + titulo.height + 2;
+
     final plot = Rect.fromLTRB(
       left,
       top,
       size.width - right,
       size.height - bottom,
     );
-    final xMin = spec.xs.first, xMax = spec.xs.last;
-    final yMin = spec.yMin;
+    if (plot.width <= 0 || plot.height <= 0) return;
 
     Offset map(double x, double y) => Offset(
       plot.left + (x - xMin) / (xMax - xMin) * plot.width,
-      plot.bottom - (y - yMin) / (spec.yMax - yMin) * plot.height,
+      plot.bottom - (y - yMin) / (ref.yMax - yMin) * plot.height,
     );
 
     final grid = Paint()
-      ..color = AppColors.border
+      ..color = cores.bordaSuave
       ..strokeWidth = 1;
-    const labelStyle = TextStyle(color: AppColors.textHint, fontSize: 11);
 
-    // Grade horizontal + rótulos Y
-    for (var y = yMin; y <= spec.yMax + .01; y += spec.yStep) {
+    // Grade horizontal + rótulos Y (pula rótulos que se encostariam).
+    var ultimoTopo = double.infinity;
+    yLabels.forEach((y, tp) {
       final p = map(xMin, y);
       _dashed(canvas, p, Offset(plot.right, p.dy), grid);
-      _text(
-        canvas,
-        y.toStringAsFixed(0),
-        Offset(plot.left - 6, p.dy),
-        labelStyle,
-        align: Alignment.centerRight,
-      );
-    }
-    // Grade vertical + rótulos X
-    for (final x in spec.xTicks) {
+      final dy = p.dy - tp.height / 2;
+      if (dy + tp.height <= ultimoTopo) {
+        tp.paint(canvas, Offset(plot.left - 6 - tp.width, dy));
+        ultimoTopo = dy;
+      }
+    });
+
+    // Grade vertical + rótulos X.
+    var fimTick = -double.infinity, fimExtra = -double.infinity;
+    for (final x in ref.xTicks) {
       final p = map(x, yMin);
       _dashed(canvas, Offset(p.dx, plot.top), p, grid);
-      _text(
-        canvas,
-        x.toStringAsFixed(0),
-        Offset(p.dx, plot.bottom + 4),
-        labelStyle,
-        align: Alignment.topCenter,
-      );
-      final extra = spec.xTickLabels[x.round()];
+      final tp = xLabels[x]!;
+      fimTick = _rotuloX(canvas, tp, p.dx, plot.bottom + 4, size, fimTick);
+      final extra = extras[x];
       if (extra != null) {
-        _text(
+        fimExtra = _rotuloX(
           canvas,
           extra,
-          Offset(p.dx, plot.bottom + 20),
-          labelStyle.copyWith(fontSize: 9),
-          align: Alignment.topCenter,
+          p.dx,
+          plot.bottom + 4 + tickH + 4,
+          size,
+          fimExtra,
         );
       }
     }
-    _text(
+    titulo.paint(
       canvas,
-      spec.xLabel,
-      Offset(plot.center.dx, size.height - 12),
-      labelStyle.copyWith(fontSize: 10),
-      align: Alignment.topCenter,
+      Offset(
+        plot.center.dx - titulo.width / 2,
+        size.height - titulo.height - 2,
+      ),
     );
 
     // Eixos
     final axis = Paint()
-      ..color = AppColors.textHint
+      ..color = cores.textoSecundario
       ..strokeWidth = 1.2;
     canvas.drawLine(plot.bottomLeft, plot.bottomRight, axis);
     canvas.drawLine(plot.topLeft, plot.bottomLeft, axis);
 
-    // Curvas de referência (spline Catmull-Rom)
-    spec.curves.forEach((z, values) {
+    // Curvas de referência (spline Catmull-Rom).
+    final fimDasLinhas = <int, double>{};
+    ref.linhas.forEach((z, values) {
       final pts = [
-        for (var i = 0; i < spec.xs.length; i++) map(spec.xs[i], values[i]),
+        for (var i = 0; i < ref.xs.length; i++) map(ref.xs[i], values[i]),
       ];
       final path = Path()..moveTo(pts.first.dx, pts.first.dy);
       for (var i = 0; i < pts.length - 1; i++) {
@@ -347,38 +561,71 @@ class _GrowthChartPainter extends CustomPainter {
           p2.dy,
         );
       }
-      final color = _curveColor[z]!;
       canvas.drawPath(
         path,
         Paint()
-          ..color = color
+          ..color = _curveColor[z]!
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2,
       );
-      _text(
-        canvas,
-        '$z',
-        pts.last + const Offset(6, 0),
-        TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
-        align: Alignment.centerLeft,
-      );
+      fimDasLinhas[z] = pts.last.dy;
     });
 
-    // Ponto da criança + tooltip
-    final pt = map(spec.point.dx, spec.point.dy);
-    canvas.drawCircle(
-      pt,
-      11,
-      Paint()..color = const Color(0xFF1A73E8).withValues(alpha: .25),
-    );
-    canvas.drawCircle(pt, 7, Paint()..color = const Color(0xFF1A73E8));
+    // Rótulos das linhas à direita, de cima para baixo, sem sobreposição.
+    final ordem = fimDasLinhas.keys.toList()
+      ..sort((a, b) => fimDasLinhas[a]!.compareTo(fimDasLinhas[b]!));
+    var proximo = -double.infinity;
+    for (final z in ordem) {
+      final tp = zLabels[z]!;
+      final dy = math.max(fimDasLinhas[z]! - tp.height / 2, proximo);
+      tp.paint(canvas, Offset(plot.right + 6, dy));
+      proximo = dy + tp.height;
+    }
+
+    // Medidas da criança: as antigas menores, ligadas em ordem de data.
+    if (spec.pontos.isEmpty) return;
+    final pts = [for (final p in spec.pontos) map(p.dx, p.dy)];
+    if (pts.length > 1) {
+      final linha = Paint()
+        ..color = _ponto.withValues(alpha: .6)
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke;
+      canvas.drawPath(Path()..addPolygon(pts, false), linha);
+      for (final p in pts.take(pts.length - 1)) {
+        canvas.drawCircle(p, 4, Paint()..color = _ponto);
+      }
+    }
+    final pt = pts.last;
+    canvas.drawCircle(pt, 11, Paint()..color = _ponto.withValues(alpha: .25));
+    canvas.drawCircle(pt, 7, Paint()..color = _ponto);
     canvas.drawCircle(pt, 3, Paint()..color = Colors.white);
 
-    const tipW = 112.0, tipH = 62.0;
+    final lines = spec.tooltip;
+    if (lines == null) return;
+    final tps = [
+      for (var i = 0; i < lines.length; i++)
+        _tp(
+          lines[i],
+          i == lines.length - 1
+              ? TextStyle(color: cores.textoSecundario, fontSize: 12)
+              : TextStyle(
+                  color: cores.texto,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                ),
+        ),
+    ];
+    final tipW = maxW(tps) + 24;
+    final tipH = tps.fold(0.0, (s, tp) => s + tp.height) + 16;
+    double clamp(double v, double lo, double hi) =>
+        v.clamp(lo, math.max(lo, hi));
+    // Balão acima do ponto; se não couber, vai para baixo dele.
+    var tipTop = pt.dy - tipH - 18;
+    if (tipTop < plot.top) tipTop = pt.dy + 18;
     final tip = RRect.fromRectAndRadius(
       Rect.fromLTWH(
-        (pt.dx - tipW / 2).clamp(plot.left, plot.right - tipW),
-        (pt.dy - tipH - 18).clamp(plot.top, plot.bottom - tipH),
+        clamp(pt.dx - tipW / 2, 0, size.width - tipW),
+        clamp(tipTop, 0, size.height - tipH),
         tipW,
         tipH,
       ),
@@ -390,22 +637,31 @@ class _GrowthChartPainter extends CustomPainter {
         ..color = Colors.black12
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
-    canvas.drawRRect(tip, Paint()..color = Colors.white);
-    final lines = spec.tooltip;
-    for (var i = 0; i < lines.length; i++) {
-      final isDate = i == lines.length - 1;
-      _text(
-        canvas,
-        lines[i],
-        Offset(tip.left + 12, tip.top + 8 + i * 16),
-        TextStyle(
-          color: isDate ? AppColors.textMuted : AppColors.textDark,
-          fontSize: isDate ? 11 : 13,
-          fontWeight: isDate ? FontWeight.w400 : FontWeight.w800,
-        ),
-        align: Alignment.topLeft,
-      );
+    canvas.drawRRect(tip, Paint()..color = cores.superficie);
+    var y = tip.top + 8;
+    for (final tp in tps) {
+      tp.paint(canvas, Offset(tip.left + 12, y));
+      y += tp.height;
     }
+  }
+
+  /// Desenha um rótulo centrado em [cx], dentro do canvas, e devolve onde ele
+  /// termina. Pula o rótulo se ele encostar no anterior (fim em [fimAnterior]).
+  double _rotuloX(
+    Canvas c,
+    TextPainter tp,
+    double cx,
+    double top,
+    Size size,
+    double fimAnterior,
+  ) {
+    final double dx = (cx - tp.width / 2).clamp(
+      0.0,
+      math.max(0.0, size.width - tp.width),
+    );
+    if (dx < fimAnterior + 4) return fimAnterior;
+    tp.paint(c, Offset(dx, top));
+    return dx + tp.width;
   }
 
   void _dashed(Canvas c, Offset a, Offset b, Paint p) {
@@ -419,25 +675,7 @@ class _GrowthChartPainter extends CustomPainter {
     }
   }
 
-  void _text(
-    Canvas c,
-    String s,
-    Offset at,
-    TextStyle style, {
-    required Alignment align,
-  }) {
-    final tp = TextPainter(
-      text: TextSpan(
-        text: s,
-        style: style.copyWith(fontFamily: 'Almarai'),
-      ),
-      textDirection: ui.TextDirection.ltr,
-    )..layout();
-    final dx = at.dx - tp.width * (align.x + 1) / 2;
-    final dy = at.dy - tp.height * (align.y + 1) / 2;
-    tp.paint(c, Offset(dx, dy));
-  }
-
   @override
-  bool shouldRepaint(covariant _GrowthChartPainter old) => old.spec != spec;
+  bool shouldRepaint(covariant _GrowthChartPainter old) =>
+      old.spec != spec || old.textScaler != textScaler || old.cores != cores;
 }

@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../app_state.dart';
 import '../routes.dart';
+import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 
@@ -23,11 +25,36 @@ class _SplashScreenState extends State<SplashScreen> {
     _timer = Timer(const Duration(milliseconds: 2500), _goToLogin);
   }
 
-  void _goToLogin() {
+  Future<void> _goToLogin() async {
+    _timer?.cancel();
+    // Quem já entrou antes continua logado e vai direto para o Início.
+    // Se a sessão não puder ser lida, segue para o Login.
+    UsuarioLogado? usuario;
+    try {
+      usuario = await authService.restaurarSessao();
+    } catch (_) {
+      usuario = null;
+    }
+    // Com sessão salva, lê o perfil e liga o Firestore antes do Início. Sem
+    // acesso ou sem perfil, vai para o Login com a mensagem.
+    String? erro;
+    if (usuario != null) {
+      try {
+        await iniciarSessao(usuario);
+      } on AuthException catch (e) {
+        usuario = null;
+        erro = e.mensagem;
+      }
+    }
     // Só sai da abertura se ela estiver visível (evita redirecionar quando o
     // app foi aberto direto em outra rota, por exemplo um link na web).
     if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? false)) return;
-    Navigator.pushReplacementNamed(context, Routes.login);
+    final mensagens = ScaffoldMessenger.of(context);
+    Navigator.pushReplacementNamed(
+      context,
+      usuario == null ? Routes.login : Routes.home,
+    );
+    if (erro != null) mensagens.showSnackBar(SnackBar(content: Text(erro)));
   }
 
   @override

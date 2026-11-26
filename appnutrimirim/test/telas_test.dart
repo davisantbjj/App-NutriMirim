@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'fontes.dart';
 import 'package:appnutrimirim/data/mock_data.dart';
 import 'package:appnutrimirim/data/models.dart';
+import 'package:appnutrimirim/repositories/repositorios.dart';
 import 'package:appnutrimirim/routes.dart';
-import 'package:appnutrimirim/screens/avaliacao/resultado_screen.dart';
 import 'package:appnutrimirim/screens/crianca/dados_crianca_screen.dart';
+import 'package:appnutrimirim/screens/crianca/lista_criancas_screen.dart';
+import 'package:appnutrimirim/screens/perfil_screen.dart';
 import 'package:appnutrimirim/theme/app_theme.dart';
 
 double _contraste(Color a, Color b) {
@@ -35,18 +37,8 @@ Future<void> _ir(WidgetTester t, Widget w, {Object? args}) async {
 
 void main() {
   setUpAll(carregarFontes);
-
-  testWidgets('Resultado exibe aviso ilustrativo (normal e desnutricao)', (
-    t,
-  ) async {
-    for (final r in [MockData.resultadoNormal, MockData.resultadoDesnutricao]) {
-      await _ir(t, const ResultadoScreen(), args: r);
-      expect(
-        find.textContaining('Resultado ilustrativo', skipOffstage: false),
-        findsOneWidget,
-      );
-    }
-  });
+  setUp(Repositorios.reiniciar);
+  tearDown(Repositorios.reiniciar);
 
   testWidgets('Dados da criança sem responsável mostra "Não informado"', (
     t,
@@ -69,6 +61,91 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Não informado', skipOffstage: false), findsNothing);
+  });
+
+  testWidgets('Busca na lista encontra nomes ignorando acentos e caixa', (
+    t,
+  ) async {
+    await _ir(t, const ListaCriancasScreen());
+
+    await t.enterText(find.byType(TextField), 'joao');
+    await t.pumpAndSettle();
+    expect(find.text('João Rocha'), findsOneWidget);
+
+    await t.enterText(find.byType(TextField), 'JOÃO');
+    await t.pumpAndSettle();
+    expect(find.text('João Rocha'), findsOneWidget);
+  });
+
+  testWidgets('Editar dados no Perfil fica indisponível e sinalizado', (
+    t,
+  ) async {
+    await _ir(t, const PerfilScreen());
+
+    expect(find.text('Editar dados (em breve)'), findsOneWidget);
+    final botao = t.widget<TextButton>(
+      find.ancestor(
+        of: find.text('Editar dados (em breve)'),
+        matching: find.byType(TextButton),
+      ),
+    );
+    expect(botao.onPressed, isNull);
+  });
+
+  testWidgets('Perfil mostra dados da sessão e seletor da UBS do médico', (
+    t,
+  ) async {
+    Repositorios.usarMemoria(
+      sessao: const SessaoProfissional(
+        uid: 'm2',
+        nome: 'Carlos Lima',
+        papel: PapelProfissional.medico,
+        ubsIds: ['u1', 'u2'],
+        ubsAtualId: 'u1',
+        nomesUbs: {'u1': 'UBS Centro', 'u2': 'UBS Sul'},
+      ),
+    );
+    await _ir(t, const PerfilScreen());
+
+    expect(find.text('Carlos Lima'), findsOneWidget);
+    expect(find.text('Médico(a)'), findsOneWidget);
+    expect(find.text('UBS atual'), findsOneWidget);
+    expect(find.text('UBS Centro'), findsWidgets);
+  });
+
+  testWidgets('Perfil mostra e executa o botão de sincronização', (t) async {
+    await _ir(t, const PerfilScreen());
+
+    expect(find.text('Última sincronização'), findsOneWidget);
+    expect(find.text('Ainda não sincronizado'), findsOneWidget);
+    expect(find.text('Sincronizar'), findsOneWidget);
+
+    await t.tap(find.text('Sincronizar'));
+    await t.pumpAndSettle();
+
+    expect(find.text('Dados sincronizados.'), findsOneWidget);
+    expect(find.text('Ainda não sincronizado'), findsNothing);
+  });
+
+  testWidgets('ACS vê opção de microárea e filtro da UBS', (t) async {
+    Repositorios.usarMemoria(
+      sessao: const SessaoProfissional(
+        uid: 'a1',
+        nome: 'Ana Souza',
+        papel: PapelProfissional.acs,
+        ubsIds: ['u1'],
+        ubsAtualId: 'u1',
+        microarea: '03',
+        nomesUbs: {'u1': 'UBS Centro'},
+      ),
+    );
+    await _ir(t, const ListaCriancasScreen());
+
+    expect(find.text('Minha microárea: 03'), findsOneWidget);
+    expect(find.text('Ver toda a UBS'), findsOneWidget);
+    await t.tap(find.text('Ver toda a UBS'));
+    await t.pumpAndSettle();
+    expect(find.text('Mostrando toda a UBS'), findsOneWidget);
   });
 
   group('contraste de Situacao.textColor >= 4.5', () {

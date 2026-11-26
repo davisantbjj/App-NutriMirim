@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../app_state.dart';
 import '../../routes.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common.dart';
 
@@ -14,11 +16,39 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _email = TextEditingController();
+  final _senha = TextEditingController();
   bool _obscure = true;
+  bool _entrando = false;
+  String? _erro;
 
-  void _entrar() {
-    if (_formKey.currentState!.validate()) {
+  @override
+  void dispose() {
+    _email.dispose();
+    _senha.dispose();
+    super.dispose();
+  }
+
+  Future<void> _entrar() async {
+    if (_entrando || !_formKey.currentState!.validate()) return;
+    setState(() {
+      _entrando = true;
+      _erro = null;
+    });
+    try {
+      final usuario = await authService.entrar(
+        email: _email.text,
+        senha: _senha.text,
+      );
+      // Lê o perfil e liga o Firestore antes do Início, que já abre os
+      // Streams no initState.
+      await iniciarSessao(usuario);
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, Routes.home);
+    } on AuthException catch (e) {
+      if (mounted) setState(() => _erro = e.mensagem);
+    } finally {
+      if (mounted) setState(() => _entrando = false);
     }
   }
 
@@ -72,10 +102,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         required: true,
                         hint: 'Digite seu e-mail',
                         icon: Icons.mail_outline,
+                        controller: _email,
                         keyboardType: TextInputType.emailAddress,
-                        validator: (v) => (v == null || !v.contains('@'))
-                            ? 'Informe um e-mail válido'
-                            : null,
+                        validator: (v) =>
+                            emailValido(v) ? null : 'Informe um e-mail válido',
                       ),
                       const SizedBox(height: 18),
                       LabeledField(
@@ -83,6 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         required: true,
                         hint: 'Digite sua senha',
                         icon: Icons.lock_outline,
+                        controller: _senha,
                         obscureText: _obscure,
                         suffix: IconButton(
                           tooltip: _obscure ? 'Mostrar senha' : 'Ocultar senha',
@@ -104,10 +135,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: const Text('Esqueci minha senha'),
                         ),
                       ),
+                      if (_erro != null)
+                        Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            _erro!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.statusBadText,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
                       const Spacer(),
                       const SizedBox(height: 24),
                       ElevatedButton(
-                        onPressed: _entrar,
+                        onPressed: _entrando ? null : _entrar,
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size.fromHeight(56),
                           shape: RoundedRectangleBorder(
@@ -119,7 +163,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        child: const Text('Entrar'),
+                        child: _entrando
+                            ? const SizedBox.square(
+                                dimension: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
+                                  semanticsLabel: 'Entrando',
+                                ),
+                              )
+                            : const Text('Entrar'),
                       ),
                       const SizedBox(height: 28),
                       const Row(

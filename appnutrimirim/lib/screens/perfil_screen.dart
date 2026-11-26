@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../routes.dart';
+import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
+import '../repositories/repositorios.dart';
+import '../utils/formatters.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
-import '../utils/formatters.dart';
 
 /// TELA 11 — Perfil Profissional.
 class PerfilScreen extends StatefulWidget {
@@ -17,17 +20,43 @@ class PerfilScreen extends StatefulWidget {
 
 class _PerfilScreenState extends State<PerfilScreen> {
   bool _notificacoes = true;
-  String _ultimaSync = formatarDataHora(DateTime(2026, 9, 28, 8, 42));
+  bool _sincronizando = false;
+  String? _ultimaSync;
 
-  void _sincronizar() {
-    setState(() => _ultimaSync = formatarDataHora(DateTime.now()));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Dados sincronizados.')));
+  Future<void> _sincronizar() async {
+    if (_sincronizando) return;
+    setState(() => _sincronizando = true);
+    final sincronizado = await sincronizarSessao();
+    if (!mounted) return;
+    setState(() {
+      _sincronizando = false;
+      if (sincronizado) {
+        _ultimaSync = formatarDataHora(DateTime.now());
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          sincronizado
+              ? 'Dados sincronizados.'
+              : 'Há registros que ainda não foram enviados.',
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final sessao = Repositorios.sessao;
+    final cores = context.cores;
+    final nome = sessao?.nome ?? 'Sessão não disponível';
+    final papel = sessao?.nomePapel ?? 'Não informado';
+    final ubsAtual =
+        sessao?.nomesUbs[sessao.ubsAtualId] ??
+        (sessao?.ubsAtualId.isNotEmpty == true
+            ? sessao!.ubsAtualId
+            : 'Não informado');
+    final microarea = sessao?.microarea?.trim();
     return Scaffold(
       appBar: const BackAppBar(title: 'Perfil Profissional'),
       body: ListView(
@@ -41,15 +70,15 @@ class _PerfilScreenState extends State<PerfilScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Ana Souza de Oliveira',
+          Text(
+            nome,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
-          const Text(
-            'Agente Comunitária de Saúde',
+          Text(
+            papel,
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+            style: TextStyle(color: cores.textoSecundario, fontSize: 12),
           ),
           const SizedBox(height: 22),
           const Text(
@@ -57,52 +86,98 @@ class _PerfilScreenState extends State<PerfilScreen> {
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
-          const InfoRow('ID Funcional', 'ACS-482910'),
-          const InfoRow('UBS Vinculada', 'UBS Jardim das Flores'),
-          const InfoRow('Telefone', '(79) 12345-6789'),
+          InfoRow('ID Funcional', sessao?.uid ?? 'Não informado'),
+          InfoRow('UBS Vinculada', ubsAtual),
+          InfoRow(
+            'Microárea',
+            microarea == null || microarea.isEmpty
+                ? 'Não informada'
+                : microarea,
+          ),
+          if (sessao?.papel == PapelProfissional.medico &&
+              sessao!.ubsIds.length > 1) ...[
+            const SizedBox(height: 8),
+            AppCard(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'UBS atual',
+                      style: TextStyle(
+                        color: cores.texto,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  DropdownButton<String>(
+                    value: sessao.ubsAtualId,
+                    items: [
+                      for (final id in sessao.ubsIds)
+                        DropdownMenuItem(
+                          value: id,
+                          child: Text(sessao.nomesUbs[id] ?? id),
+                        ),
+                    ],
+                    onChanged: (id) {
+                      if (id != null) {
+                        setState(() => Repositorios.trocarUbsAtual(id));
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (sessao?.master == true)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Administrador: acesso a todas as UBS.',
+                style: TextStyle(
+                  color: cores.textoSecundario,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
           Center(
             child: TextButton(
-              onPressed: () {},
-              child: const Text('Editar dados'),
+              onPressed: null,
+              child: const Text('Editar dados (em breve)'),
             ),
           ),
           const SizedBox(height: 20),
           AppCard(
             child: Row(
               children: [
-                const Icon(
-                  Icons.cloud_done_outlined,
-                  color: AppColors.textMuted,
-                  size: 24,
-                ),
+                Icon(Icons.cloud_done_outlined, color: cores.icone, size: 24),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Última sincronização',
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textMuted,
+                          color: cores.texto,
                           fontSize: 12,
                         ),
                       ),
                       Text(
-                        _ultimaSync,
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 11,
+                        _ultimaSync ?? 'Ainda não sincronizado',
+                        style: TextStyle(
+                          color: cores.textoSecundario,
+                          fontSize: 12,
                         ),
                       ),
                     ],
                   ),
                 ),
                 TextButton(
-                  onPressed: _sincronizar,
-                  child: const Text(
-                    'Sincronizar',
-                    style: TextStyle(fontSize: 14),
+                  onPressed: _sincronizando ? null : _sincronizar,
+                  child: Text(
+                    _sincronizando ? 'Sincronizando...' : 'Sincronizar',
+                    style: const TextStyle(fontSize: 14),
                   ),
                 ),
               ],
@@ -148,11 +223,27 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 iconAlignment: IconAlignment.end,
                 icon: const Icon(Icons.logout),
                 label: const Text('Sair da conta'),
-                onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  Routes.login,
-                  (_) => false,
-                ),
+                onPressed: () async {
+                  try {
+                    // Não sai com registros pendentes: apagar o cache
+                    // perderia o que ainda não foi enviado.
+                    await sairDaConta();
+                  } on AuthException catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.mensagem)));
+                    return;
+                  }
+                  if (!context.mounted) return;
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    Routes.login,
+                    (_) => false,
+                  );
+                  // Com o Login aberto: memória de novo e cache apagado.
+                  await desligarSessao();
+                },
               ),
             ),
           ),
@@ -178,11 +269,12 @@ class _SwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cores = context.cores;
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: SwitchListTile(
         contentPadding: EdgeInsets.zero,
-        secondary: Icon(icon, color: AppColors.textMuted, size: 24),
+        secondary: Icon(icon, color: cores.icone, size: 24),
         title: Text(
           label,
           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),

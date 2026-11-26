@@ -61,11 +61,35 @@ O NutriMirim é um projeto voltado para a vigilância nutricional infantil, dese
 | --- | --- |
 | Davi Santana Lóz | Criação do projeto Flutter (`appnutrimirim/`) e importação do protótipo do Figma para o código |
 
-## PLANEJAMENTO DO DESENVOLVIMENTO - 10/11/2026
+## PLANEJAMENTO DO DESENVOLVIMENTO - 11/11/2026
 
 | Integrante | Responsabilidade |
 | --- | --- |
-| Davi Santana Lóz | Revisão geral do código; criação do `CONTEXTO_IA.md` (contexto compartilhado para IAs, registro de prompts, padrão de commits e fluxo de branches); divisão das tasks de front-end e back-end; cronograma de entregas |
+| Alexandre Afonso Silva Virgens |Desenvolvimento das telas de recuperação de senha, configuração da localização em português e implementação de testes de validação. | 
+| Davi Santana Lóz | Revisão geral do código; criação do `CONTEXTO_IA.md` (contexto compartilhado para IAs, registro de prompts, padrão de commits e fluxo de branches); divisão das tasks de front-end e back-end; cronograma de entregas; Desenvolvimento das telas de Abertura, Login e Início. Correção da navegação, refatoração dos modelos de dados, padronização de datas e implementação de testes. | 
+| Larissa Barbosa dos Santos | Desenvolvimento das telas de Nova Avaliação, Cadastro e Registro de Medidas. Melhorias de acessibilidade, seleção de datas e validação de CPF. | 
+| Lorena Reis Santos | Desenvolvimento das telas de Dados da Criança, Perfil e Lista de Crianças. Melhorias na busca, ajustes de interface e implementação de testes. | 
+| Talita Santos das Virgens | Desenvolvimento das telas de Resultado, Curva de Crescimento e Histórico. Correção da navegação, ordenação das avaliações e implementação de testes; Atualizar o README.md e o CHANGELOG.md|
+
+## SEMANA 1 — BASE DE DADOS E TASKS FÁCEIS DO BACK-END - 18/11/2026
+
+| Integrante | Responsabilidade |
+| --- | --- |
+| Alexandre Afonso Silva Virgens | Configuração do Firebase no projeto `app-nutrimirim` (Android, iOS e Web). Alto contraste com `ThemeExtension` (`lib/theme/app_palette.dart`), borda dos campos com contraste 3:1 e fontes de no mínimo 12 px nos componentes compartilhados. |
+| Davi Santana Lóz | Coleções e regras de segurança do Firestore por UBS e por perfil de acesso (`docs/firestore.md`, `firestore.rules` e 63 testes no emulador). Integração dos PRs da semana na `develop` e ajuste do `firebase_core` para o Flutter 3.35.3. |
+| Larissa Barbosa dos Santos | Validação das medidas pela OMS, com as tabelas oficiais offline (`lib/services/antropometria_oms.dart` e `docs/validacao-antropometrica-oms.md`), validadores de CPF e cadastro com sexo obrigatório, `Semantics` e calendário. |
+| Lorena Reis Santos | Criança passada por todo o fluxo a partir de Dados da criança (registro, curva, histórico e edição preenchida). Relatório resumido da avaliação em texto, com botão de compartilhar (RF10). |
+| Talita Santos das Virgens | Classificação nutricional pelos pontos de corte do SISVAN, com condutas, data de retorno e alerta de encaminhamento (`lib/services/classificacao.dart`). Curva de crescimento com a criança selecionada, contraste AA nos rótulos e respeito ao tamanho da fonte. |
+
+## SEMANA 2 — TASKS DIFÍCEIS DO FRONT-END E REPOSITÓRIOS - 25/11/2026
+
+| Integrante | Responsabilidade |
+| --- | --- |
+| Alexandre Afonso Silva Virgens | `AuthService` com login por e-mail e senha, recuperação de senha, logout e sessão mantida (PR #28). Tratamento de todos os erros do login e proteção contra enumeração de e-mails na recuperação (PR #31). Configuração do Authentication no Console e criação do banco Firestore (São Paulo, modo produção). |
+| Davi Santana Lóz | Repositórios de crianças e avaliações (`lib/repositories/`), com uma versão em memória e outra com Firestore, e as telas lendo os dados pelos repositórios em vez do mock (PR #26). Login ligado ao Firestore pelo perfil do profissional, com o cache apagado ao sair (PR #35). Passo a passo do cadastro de profissionais (`docs/cadastro-de-profissionais.md`), contas de teste de cada papel, publicação das regras e dos índices, revisão e integração dos PRs da semana. |
+| Larissa Barbosa dos Santos | Cadastro e avaliações salvos pelos repositórios: cadastro e edição com motivo obrigatório, UBS de Referência com as UBS da sessão, registro de medidas com edema, indicadores, classificação e retorno, e correção da avaliação pelo Histórico em até 15 minutos com auditoria. CPF da criança e edema no Firestore, com as regras atualizadas e publicadas (branch `feat/larissa-cadastro-avaliacoes`, aguardando o PR). Diagrama de casos de uso (`docs/casos-de-uso.md`). |
+| Lorena Reis Santos | Consultas e perfil por papel: Perfil com nome, papel, UBS e microárea reais, seletor de UBS para o médico, Lista e Início filtrados pela microárea do ACS (PR #39). |
+| Talita Santos das Virgens | Z-score pela OMS integrado ao Resultado e à Curva de crescimento: Registro de medidas abre o Resultado com a classificação calculada, e a Curva usa as tabelas LMS da OMS 2006 (PR #30). Testes do Histórico (filtro por criança, vazio, atualização ao vivo, conteúdo do item e estados de erro, PR #38). Diagrama de classes (`docs/diagrama-de-classes.md`). Atualização do README.md e do CHANGELOG.md. |
 
 As tasks de cada integrante, o cronograma e o fluxo de branches estão detalhados no [`CONTEXTO_IA.md`](CONTEXTO_IA.md).
 
@@ -85,5 +109,13 @@ Dentro da pasta `appnutrimirim/`:
 ```bash
 flutter pub get
 flutter run
+flutter analyze
 flutter test
+```
+
+Testes das regras do Firestore (precisam de Node 24.12+ e Java 21), dentro da pasta `firebase/`:
+
+```bash
+npm install
+npm test
 ```

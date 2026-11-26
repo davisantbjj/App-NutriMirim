@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
 
+export 'cpf_input_formatter.dart' show CpfInputFormatter;
+
 abstract class _MascaraNumericaFormatter extends TextInputFormatter {
   const _MascaraNumericaFormatter(this.limite);
 
@@ -21,21 +23,6 @@ abstract class _MascaraNumericaFormatter extends TextInputFormatter {
       text: texto,
       selection: TextSelection.collapsed(offset: texto.length),
     );
-  }
-}
-
-class CpfInputFormatter extends _MascaraNumericaFormatter {
-  const CpfInputFormatter() : super(11);
-
-  @override
-  String formatar(String digitos) {
-    final buffer = StringBuffer();
-    for (var i = 0; i < digitos.length; i++) {
-      if (i == 3 || i == 6) buffer.write('.');
-      if (i == 9) buffer.write('-');
-      buffer.write(digitos[i]);
-    }
-    return buffer.toString();
   }
 }
 
