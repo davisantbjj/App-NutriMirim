@@ -30,6 +30,11 @@ class Repositorios {
   static AvaliacaoRepository? _avaliacoes;
   static SessaoProfissional? _sessao;
 
+  /// Firestore em uso depois de [usarFirestore] (nulo na memória), para
+  /// [trocarUbsAtual] recriar os repositórios com a sessão nova.
+  static bool _noFirestore = false;
+  static FirebaseFirestore? _firestore;
+
   /// Profissional logado (papel, UBS, microárea), ou `null` sem login ou na
   /// memória sem sessão. Para o Perfil e as telas que dependem do papel.
   static SessaoProfissional? get sessao => _sessao;
@@ -60,6 +65,8 @@ class Repositorios {
     SessaoProfissional? sessao,
   }) {
     _sessao = sessao;
+    _noFirestore = false;
+    _firestore = null;
     final banco = comMock
         ? BancoMemoria.comMock(agora: agora, usuario: usuario)
         : BancoMemoria(agora: agora, usuario: usuario);
@@ -76,6 +83,8 @@ class Repositorios {
     FirebaseFirestore? firestore,
   }) {
     _sessao = sessao;
+    _noFirestore = true;
+    _firestore = firestore;
     _criancas = CriancaRepositoryFirestore(
       sessao: sessao,
       firestore: firestore,
@@ -88,4 +97,18 @@ class Repositorios {
 
   /// Volta ao padrão: memória com o mock, estado novo e sem sessão.
   static void reiniciar() => usarMemoria();
+
+  /// Troca a UBS onde as crianças novas são cadastradas (médico em mais de
+  /// uma UBS). Ignora UBS fora de `ubsIds`. No Firestore, recria os
+  /// repositórios, porque eles guardam a sessão com que foram criados.
+  static void trocarUbsAtual(String ubsId) {
+    final atual = _sessao;
+    if (atual == null || !atual.ubsIds.contains(ubsId)) return;
+    final nova = atual.copyWith(ubsAtualId: ubsId);
+    if (_noFirestore) {
+      usarFirestore(nova, firestore: _firestore);
+    } else {
+      _sessao = nova;
+    }
+  }
 }

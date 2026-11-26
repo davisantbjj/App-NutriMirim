@@ -32,4 +32,21 @@ class SessaoProfissional {
   final Map<String, String> nomesUbs;
 
   bool get master => papel == PapelProfissional.master;
+
+  String get nomePapel => switch (papel) {
+    PapelProfissional.master => 'Administrador',
+    PapelProfissional.acs => 'Agente Comunitário de Saúde',
+    PapelProfissional.medico => 'Médico(a)',
+    PapelProfissional.nutricionista => 'Nutricionista',
+  };
+
+  SessaoProfissional copyWith({String? ubsAtualId}) => SessaoProfissional(
+    uid: uid,
+    nome: nome,
+    papel: papel,
+    ubsIds: ubsIds,
+    ubsAtualId: ubsAtualId ?? this.ubsAtualId,
+    microarea: microarea,
+    nomesUbs: nomesUbs,
+  );
 }

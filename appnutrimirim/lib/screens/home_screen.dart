@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../routes.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
+import '../repositories/repositorios.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
 
@@ -11,6 +13,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sessao = Repositorios.sessao;
+    final cores = context.cores;
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -19,6 +23,19 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 32),
             const Wordmark(),
             const SizedBox(height: 48),
+            if (sessao?.papel == PapelProfissional.acs)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Microárea ${sessao?.microarea ?? 'não definida'}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: cores.textoSecundario,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             _MenuCard(
               icon: Icons.manage_search,
               iconBg: AppColors.primaryLight,
