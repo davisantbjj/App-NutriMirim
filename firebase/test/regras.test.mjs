@@ -155,6 +155,38 @@ const novoPerfil = (extra = {}) => ({
   ubsIds: ['ubsA', 'ubsB'], ativo: true, ...extra,
 });
 
+describe('campos do cadastro e da medição', () => {
+  it('aceita CPF opcional da criança e rejeita formato inválido', async () => {
+    await assertSucceeds(setDoc(doc(db('pedro'), 'criancas/comCpf'), novaCrianca('ubsA', 'pedro', { cpf: '11144477735' })));
+    await assertFails(setDoc(doc(db('pedro'), 'criancas/cpfInvalido'), novaCrianca('ubsA', 'pedro', { cpf: '123' })));
+  });
+
+  it('preserva CPF anterior no log e rejeita histórico omitido ou adulterado', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'criancas/cA'), { cpf: '11144477735' });
+    });
+    await assertFails(editarCrianca('pedro', 'cA', { cpf: '52998224725' }));
+    await assertFails(editarCrianca('pedro', 'cA', { cpf: '52998224725' }, { cpfAnterior: '00000000000' }));
+    await assertSucceeds(editarCrianca('pedro', 'cA', { cpf: '52998224725' }, { cpfAnterior: '11144477735' }));
+  });
+
+  it('aceita edema booleano e rejeita texto', async () => {
+    await assertSucceeds(setDoc(doc(db('pedro'), 'avaliacoes/comEdema'), novaAvaliacao('ubsA', 'cA', 'pedro', {
+      edema: true, desnutricao: true, situacao: 'abaixo', indicadores: { ei: INDIC.ei },
+    })));
+    await assertFails(setDoc(doc(db('pedro'), 'avaliacoes/edemaInvalido'), novaAvaliacao('ubsA', 'cA', 'pedro', { edema: 'sim' })));
+  });
+
+  it('correção de edema exige o valor anterior no log', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'avaliacoes/recente'), { edema: true });
+    });
+    await assertFails(corrigirAval('pedro', 'recente', { edema: false }));
+    await assertFails(corrigirAval('pedro', 'recente', { edema: false }, { edemaAnterior: false }));
+    await assertSucceeds(corrigirAval('pedro', 'recente', { edema: false }, { edemaAnterior: true }));
+  });
+});
+
 // =====================================================================
 describe('sem login', () => {
   it('nega leitura e escrita em todas as coleções', async () => {

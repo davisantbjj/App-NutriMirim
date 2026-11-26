@@ -118,16 +118,23 @@ class CriancaRepositoryFirestore implements CriancaRepository {
   });
 
   @override
-  Future<void> cadastrar(Crianca crianca) => traduzir(() async {
+  Future<void> cadastrar(
+    Crianca crianca, {
+    String? ubsId,
+  }) => traduzir(() async {
     validarCrianca(crianca, _agora());
     if (crianca.id.isEmpty) {
       throw const DadosInvalidos('Use novoId() para gerar o id da criança.');
     }
-    if (sessao.ubsAtualId.isEmpty) {
+    final unidade = ubsId ?? sessao.ubsAtualId;
+    if (unidade.isEmpty) {
       throw const DadosInvalidos('Nenhuma UBS selecionada para o cadastro.');
     }
+    if (!sessao.master && !sessao.ubsIds.contains(unidade)) {
+      throw const PermissaoNegada('Selecione uma UBS vinculada ao seu perfil.');
+    }
     await _col.doc(crianca.id).set({
-      ...criancaParaMap(crianca, ubsId: sessao.ubsAtualId),
+      ...criancaParaMap(crianca, ubsId: unidade),
       'versao': 0,
       'criadoPor': sessao.uid,
       'criadoEm': FieldValue.serverTimestamp(),
@@ -200,6 +207,7 @@ class CriancaRepositoryFirestore implements CriancaRepository {
       'motivo': motivo,
       'versao': versao,
       'nomeAnterior': antes['nome'],
+      'cpfAnterior': antes['cpf'],
       'responsavelAnterior': antes['responsavel'],
       'ativaAnterior': antes['ativa'],
       'nascimentoAnterior': antes['nascimento'],

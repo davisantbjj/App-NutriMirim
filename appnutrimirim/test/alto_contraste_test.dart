@@ -2,6 +2,8 @@ import 'package:appnutrimirim/theme/app_palette.dart';
 import 'package:appnutrimirim/theme/app_theme.dart';
 import 'package:appnutrimirim/widgets/bottom_nav.dart';
 import 'package:appnutrimirim/widgets/common.dart';
+import 'package:appnutrimirim/screens/avaliacao/nova_avaliacao_screen.dart';
+import 'package:appnutrimirim/screens/avaliacao/cadastro_crianca_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -21,6 +23,50 @@ Future<void> _abrir(WidgetTester t, Widget filho, {bool hc = false}) {
 }
 
 void main() {
+  testWidgets(
+    'telas de cadastro e nova avaliação acompanham o alto contraste',
+    (t) async {
+      for (final hc in [false, true]) {
+        await t.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light(highContrast: hc),
+            home: const CadastroCriancaScreen(),
+          ),
+        );
+        await t.pumpAndSettle();
+        final label = t.widget<Text>(find.text('Feminino'));
+        expect(
+          label.style!.color,
+          hc
+              ? AppPalette.altoContraste.textoSecundario
+              : AppPalette.normal.textoSecundario,
+        );
+        await t.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light(highContrast: hc),
+            home: const NovaAvaliacaoScreen(),
+          ),
+        );
+        await t.pumpAndSettle();
+        final introducao = t.widget<Text>(
+          find.textContaining('Selecione uma das opções'),
+        );
+        expect(
+          introducao.style!.color,
+          hc
+              ? AppPalette.altoContraste.textoSecundario
+              : AppPalette.normal.textoSecundario,
+        );
+        if (hc) {
+          for (final card in t.widgetList<AppCard>(find.byType(AppCard))) {
+            expect(card.color, AppPalette.altoContraste.superficie);
+          }
+        }
+        expect(t.takeException(), isNull);
+      }
+    },
+  );
+
   final paletas = [
     ('normal', AppPalette.normal),
     ('alto contraste', AppPalette.altoContraste),

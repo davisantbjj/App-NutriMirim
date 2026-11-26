@@ -311,3 +311,26 @@ npx --prefix firebase firebase deploy --only firestore:rules,firestore:indexes -
 ```
 
 Para publicar só as regras: `--only firestore:rules`. Regras e índices publicados pela primeira vez em 25/11/2026 no projeto `app-nutrimirim`.
+
+## Cadastro e medições — implementação local de Larissa (25/11/2026)
+
+- O aplicativo está configurado para `app-nutrimirim` em Android, iOS e Web. O `main.dart` inicializa o Firebase, e o login carrega `profissionais/{uid}` e liga os repositórios ao Firestore. A versão em memória é usada nos testes e antes da sessão; não substitui o banco no app autenticado.
+- `CriancaRepository.cadastrar(crianca, ubsId: ...)` aceita a UBS escolhida no formulário. Quando o id é omitido, continua usando `sessao.ubsAtualId`. Profissionais comuns só escolhem entre `ubsIds`; o master usa as UBS carregadas em `nomesUbs`. A edição mantém a UBS e exige motivo.
+- `criancas.cpf` é opcional, com 11 dígitos ou `null`, separado de `responsavel.cpf`. O app valida os dígitos verificadores. O log recebe `cpfAnterior`, conferido contra o documento anterior. `Responsavel.cpf` é o nome usado pelo novo fluxo; `cpfMascarado` permanece como alias para compatibilidade, sem prometer anonimização.
+- `avaliacoes.edema` é booleano; `null` ou ausência identifica registros antigos. Na correção, o profissional confirma esse dado se não estiver gravado. O log recebe `edemaAnterior`. A Curva respeita o edema gravado ao decidir quais indicadores podem ser calculados.
+- O registro preserva peso e altura observados, posição, indicadores disponíveis, classificação, retorno e versão OMS. A correção recalcula o resultado e chama o repositório, que valida autor/prazo e grava a auditoria. O prazo é estritamente anterior a 15 minutos de `criadoEm`, com exceção do master.
+- A interface bloqueia reenvio enquanto aguarda o Future da gravação e só confirma sucesso após sua conclusão. Offline, o Firestore pode manter o envio pendente; o formulário informa que aguarda a rede. O status global de sincronização continua na task do Alexandre.
+
+**Validação local concluída em 25/11/2026:** após autorização para continuar, passaram 467 testes Flutter (SDK instalado: 3.47.9) e 67 testes de regras no emulador do Firestore, projeto fictício `demo-nutrimirim`. A análise estática não apresentou erros; permanecem quatro avisos informativos preexistentes de `containsSemantics`. Java 21 portátil foi usado no emulador, sem instalação global. Os lockfiles não foram alterados.
+
+**Validação final (25/11/2026):** após integrar a `develop` em `abb2780`, passaram **481 testes no Flutter 3.35.3 / Dart 3.9.2**, a compilação Web e a análise sem erros (um aviso informativo preexistente `prefer_initializing_formals`). Dependências e lockfiles preservados.
+
+**Publicação confirmada (25/11/2026):** as regras remotas foram comparadas com a `develop` antes da atualização. As regras desta tarefa foram publicadas em `app-nutrimirim` e o conteúdo remoto foi confirmado igual ao arquivo local (ruleset `3750e74f-c16a-43f7-bed7-0c01783f4f37`). Os seis índices existentes já estavam `READY`; não precisaram de alteração. O banco `(default)` está em `southamerica-east1`.
+
+**Entrega pendente:** teste manual dos novos fluxos no app com contas fictícias, incluindo os quatro papéis, seguido de PR/merge. Larissa informou que não tem uma conta de teste do app; Davi administra o acesso às contas registradas no contexto. A autenticação administrativa do CLI não substitui esse teste. Não foram criados usuários nem registros clínicos no projeto real nesta sessão.
+
+Após a validação, o comando de publicação, executado na raiz e com autorização de quem administra o projeto, é:
+
+```bash
+npx --prefix firebase firebase deploy --only firestore:rules,firestore:indexes --project app-nutrimirim
+```
