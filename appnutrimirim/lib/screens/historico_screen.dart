@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../data/models.dart';
 import '../repositories/repositorios.dart';
 import '../routes.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
@@ -85,8 +84,7 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
     List<Avaliacao> itens,
     Map<String, String> nomes,
   ) {
-    final ordenadas = [...itens]
-      ..sort((a, b) => b.data.compareTo(a.data));
+    final ordenadas = [...itens]..sort((a, b) => b.data.compareTo(a.data));
     return _moldura(
       ListView(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
@@ -123,26 +121,26 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
                           ),
                           Text(
                             formatarData(a.data),
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
+                            style: TextStyle(
+                              color: context.cores.textoSecundario,
                               fontSize: 12,
                             ),
                           ),
                           Text(
                             'Peso: ${formatarNumero(a.pesoKg)} kg  |  Altura: ${formatarAltura(a.alturaCm)}',
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 11,
+                            style: TextStyle(
+                              color: context.cores.textoSecundario,
+                              fontSize: 12,
                             ),
                           ),
                         ],
                       ),
                     ),
                     StatusBadge(a.situacao, dense: true),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right,
                       size: 20,
-                      color: AppColors.textMuted,
+                      color: context.cores.icone,
                     ),
                   ],
                 ),

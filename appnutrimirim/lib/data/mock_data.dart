@@ -174,22 +174,4 @@ class MockData {
     final lista = avaliacoesDe(criancaId);
     return lista.isEmpty ? null : lista.first;
   }
-
-  static const resultadoNormal = ResultadoAvaliacao(
-    desnutricao: false,
-    indicadores: [
-      Indicador('Peso para idade (P/I)', -0.5, Situacao.normal),
-      Indicador('Estatura para idade (E/I)', -0.3, Situacao.normal),
-      Indicador('Peso para estatura (P/E)', 0.1, Situacao.normal),
-    ],
-  );
-
-  static const resultadoDesnutricao = ResultadoAvaliacao(
-    desnutricao: true,
-    indicadores: [
-      Indicador('Peso para idade (P/I)', -2.5, Situacao.abaixo),
-      Indicador('Estatura para idade (E/I)', -1.8, Situacao.atencao),
-      Indicador('Peso para estatura (P/E)', 0.1, Situacao.normal),
-    ],
-  );
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../routes.dart';
+import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
 import '../repositories/repositorios.dart';
@@ -25,8 +26,11 @@ class _PerfilScreenState extends State<PerfilScreen> {
     final cores = context.cores;
     final nome = sessao?.nome ?? 'Sessão não disponível';
     final papel = sessao?.nomePapel ?? 'Não informado';
-    final ubsAtual = sessao?.nomesUbs[sessao.ubsAtualId] ??
-        (sessao?.ubsAtualId.isNotEmpty == true ? sessao!.ubsAtualId : 'Não informado');
+    final ubsAtual =
+        sessao?.nomesUbs[sessao.ubsAtualId] ??
+        (sessao?.ubsAtualId.isNotEmpty == true
+            ? sessao!.ubsAtualId
+            : 'Não informado');
     final microarea = sessao?.microarea?.trim();
     return Scaffold(
       appBar: const BackAppBar(title: 'Perfil Profissional'),
@@ -49,10 +53,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
           Text(
             papel,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: cores.textoSecundario,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: cores.textoSecundario, fontSize: 12),
           ),
           const SizedBox(height: 22),
           const Text(
@@ -161,13 +162,25 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 icon: const Icon(Icons.logout),
                 label: const Text('Sair da conta'),
                 onPressed: () async {
-                  await authService.sair();
+                  try {
+                    // Não sai com registros pendentes: apagar o cache
+                    // perderia o que ainda não foi enviado.
+                    await sairDaConta();
+                  } on AuthException catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.mensagem)));
+                    return;
+                  }
                   if (!context.mounted) return;
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     Routes.login,
                     (_) => false,
                   );
+                  // Com o Login aberto: memória de novo e cache apagado.
+                  await desligarSessao();
                 },
               ),
             ),

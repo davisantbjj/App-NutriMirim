@@ -2,8 +2,8 @@
 enum PapelProfissional { master, acs, medico, nutricionista }
 
 /// Quem está logado, como o repositório do Firestore precisa saber.
-/// O AuthService (task do Alexandre) monta isto a partir de
-/// `profissionais/{uid}` depois do login.
+/// O `SessaoService` (`lib/services/sessao_service.dart`) monta isto a
+/// partir de `profissionais/{uid}` depois do login.
 class SessaoProfissional {
   const SessaoProfissional({
     required this.uid,
@@ -40,14 +40,13 @@ class SessaoProfissional {
     PapelProfissional.nutricionista => 'Nutricionista',
   };
 
-  SessaoProfissional copyWith({String? ubsAtualId}) =>
-      SessaoProfissional(
-        uid: uid,
-        nome: nome,
-        papel: papel,
-        ubsIds: ubsIds,
-        ubsAtualId: ubsAtualId ?? this.ubsAtualId,
-        microarea: microarea,
-        nomesUbs: nomesUbs,
-      );
+  SessaoProfissional copyWith({String? ubsAtualId}) => SessaoProfissional(
+    uid: uid,
+    nome: nome,
+    papel: papel,
+    ubsIds: ubsIds,
+    ubsAtualId: ubsAtualId ?? this.ubsAtualId,
+    microarea: microarea,
+    nomesUbs: nomesUbs,
+  );
 }

@@ -212,13 +212,3 @@ class Indicador {
   final double zScore;
   final Situacao situacao;
 }
-
-class ResultadoAvaliacao {
-  const ResultadoAvaliacao({
-    required this.desnutricao,
-    required this.indicadores,
-  });
-
-  final bool desnutricao;
-  final List<Indicador> indicadores;
-}

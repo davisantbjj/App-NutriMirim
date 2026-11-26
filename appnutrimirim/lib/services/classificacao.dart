@@ -177,10 +177,16 @@ ClassificacaoIndicador classificarIndicador(
 }
 
 /// Classificação geral de uma avaliação: a do pior indicador.
+///
+/// [edema] é o edema bilateral nos pés observado pelo profissional. Pela OMS
+/// e pelo AIDPI, ele é desnutrição aguda grave em qualquer z-score; como o
+/// edema invalida os indicadores de peso, a lista pode vir vazia nesse caso.
 class ClassificacaoAvaliacao {
-  ClassificacaoAvaliacao(List<ClassificacaoIndicador> indicadores)
-    : indicadores = List.unmodifiable(indicadores) {
-    if (indicadores.isEmpty) {
+  ClassificacaoAvaliacao(
+    List<ClassificacaoIndicador> indicadores, {
+    this.edema = false,
+  }) : indicadores = List.unmodifiable(indicadores) {
+    if (indicadores.isEmpty && !edema) {
       throw ArgumentError.value(
         indicadores,
         'indicadores',
@@ -190,33 +196,38 @@ class ClassificacaoAvaliacao {
   }
 
   final List<ClassificacaoIndicador> indicadores;
+  final bool edema;
 
-  /// Pior gravidade. No empate, o déficit vem antes do excesso, porque a
-  /// desnutrição é o foco do app.
+  /// Indicador de pior gravidade. No empate, o déficit vem antes do excesso,
+  /// porque a desnutrição é o foco do app. Lança [StateError] se não houver
+  /// indicadores (só acontece com [edema]).
   ClassificacaoIndicador get pior => indicadores.reduce((a, b) {
     if (b.gravidade > a.gravidade) return b;
     if (a.gravidade > b.gravidade) return a;
     return b.desvio == Desvio.deficit && a.desvio != Desvio.deficit ? b : a;
   });
 
-  Gravidade get gravidade => pior.gravidade;
+  Gravidade get gravidade => edema ? Gravidade.grave : pior.gravidade;
   Semaforo get semaforo => gravidade.semaforo;
 
-  /// Algum indicador abaixo de -2 (déficit de peso, de estatura ou magreza).
-  bool get desnutricao => indicadores.any((i) => i.desvio == Desvio.deficit);
+  /// Edema ou algum indicador abaixo de -2 (déficit de peso, de estatura ou
+  /// magreza).
+  bool get desnutricao =>
+      edema || indicadores.any((i) => i.desvio == Desvio.deficit);
 
-  /// Algum indicador com magreza acentuada (P/E ou IMC/I < -3).
+  /// Edema ou algum indicador com magreza acentuada (P/E ou IMC/I < -3).
   bool get desnutricaoAgudaGrave =>
-      indicadores.any((i) => i.desnutricaoAgudaGrave);
+      edema || indicadores.any((i) => i.desnutricaoAgudaGrave);
 }
 
 /// Classifica todos os z-scores informados. Lança [ArgumentError] se o mapa
-/// estiver vazio ou tiver um z-score não finito.
+/// estiver vazio (sem [edema]) ou tiver um z-score não finito.
 ClassificacaoAvaliacao classificarAvaliacao(
-  Map<IndicadorAntropometrico, double> zScores,
-) => ClassificacaoAvaliacao([
+  Map<IndicadorAntropometrico, double> zScores, {
+  bool edema = false,
+}) => ClassificacaoAvaliacao([
   for (final e in zScores.entries) classificarIndicador(e.key, e.value),
-]);
+], edema: edema);
 
 // ---------------------------------------------------------------------------
 // RF13 — micro-condutas
@@ -232,7 +243,6 @@ List<String> microCondutas(
   ClassificacaoAvaliacao classificacao, {
   int? idadeMeses,
 }) {
-  final pior = classificacao.pior;
   final condutas = <String>[];
 
   if (classificacao.desnutricaoAgudaGrave) {
@@ -242,9 +252,9 @@ List<String> microCondutas(
           'recusa alimentar, vômitos ou diarreia com desidratação.',
       'Registrar o encaminhamento e confirmar se a família foi atendida.',
     ]);
-  } else if (pior.desvio == Desvio.deficit) {
+  } else if (classificacao.pior.desvio == Desvio.deficit) {
     condutas.addAll([
-      if (pior.gravidade == Gravidade.grave)
+      if (classificacao.gravidade == Gravidade.grave)
         'Agendar consulta com médico ou nutricionista da UBS nos próximos '
             'dias.'
       else
@@ -258,9 +268,9 @@ List<String> microCondutas(
       'Conferir na caderneta as vacinas e a suplementação de ferro e de '
           'vitamina A.',
     ]);
-  } else if (pior.desvio == Desvio.excesso) {
+  } else if (classificacao.pior.desvio == Desvio.excesso) {
     condutas.addAll([
-      if (pior.gravidade == Gravidade.risco)
+      if (classificacao.gravidade == Gravidade.risco)
         'Agendar consulta com médico ou nutricionista da UBS.',
       'Avaliar a alimentação e orientar evitar bebidas açucaradas, '
           'biscoitos recheados e outros ultraprocessados.',
@@ -412,7 +422,8 @@ class AlertaEncaminhamento {
 /// com médico ou nutricionista, sem ser no mesmo dia.
 ///
 /// O z-score não detecta edema. Inchaço nos dois pés também é desnutrição
-/// aguda grave, e as micro-condutas pedem que o profissional verifique.
+/// aguda grave: com [ClassificacaoAvaliacao.edema], o alerta é urgente mesmo
+/// sem indicador no vermelho.
 AlertaEncaminhamento? alertaEncaminhamento(
   ClassificacaoAvaliacao classificacao,
 ) {
@@ -421,9 +432,12 @@ AlertaEncaminhamento? alertaEncaminhamento(
           .where((i) => i.semaforo == Semaforo.vermelho)
           .toList()
         ..sort((a, b) => b.gravidade.index - a.gravidade.index);
-  if (criticos.isEmpty) return null;
+  if (criticos.isEmpty && !classificacao.edema) return null;
 
-  final nomes = criticos.map((i) => i.diagnostico.toLowerCase()).join(', ');
+  final nomes = [
+    if (classificacao.edema) 'edema bilateral nos pés',
+    for (final i in criticos) i.diagnostico.toLowerCase(),
+  ].join(', ');
 
   if (classificacao.desnutricaoAgudaGrave) {
     return AlertaEncaminhamento(

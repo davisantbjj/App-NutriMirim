@@ -75,13 +75,13 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
         (sessao?.microarea?.isNotEmpty ?? false);
     final base = porArea
         ? todas.where(
-            (c) =>
-                c.microarea == null || c.microarea == sessao!.microarea,
+            (c) => c.microarea == null || c.microarea == sessao!.microarea,
           )
         : todas;
-    return filtrarCriancas(base, _busca)
-        .where((c) => _sexo == null || c.sexo == _sexo)
-        .toList();
+    return filtrarCriancas(
+      base,
+      _busca,
+    ).where((c) => _sexo == null || c.sexo == _sexo).toList();
   }
 
   @override
@@ -136,8 +136,7 @@ class _ListaCriancasScreenState extends State<ListaCriancasScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () =>
-                      setState(() => _verTodaUbs = !_verTodaUbs),
+                  onPressed: () => setState(() => _verTodaUbs = !_verTodaUbs),
                   child: Text(
                     _verTodaUbs ? 'Ver minha microárea' : 'Ver toda a UBS',
                   ),

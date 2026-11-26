@@ -6,7 +6,6 @@ import 'package:appnutrimirim/data/mock_data.dart';
 import 'package:appnutrimirim/data/models.dart';
 import 'package:appnutrimirim/repositories/repositorios.dart';
 import 'package:appnutrimirim/routes.dart';
-import 'package:appnutrimirim/screens/avaliacao/resultado_screen.dart';
 import 'package:appnutrimirim/screens/crianca/dados_crianca_screen.dart';
 import 'package:appnutrimirim/screens/crianca/lista_criancas_screen.dart';
 import 'package:appnutrimirim/screens/perfil_screen.dart';
@@ -40,18 +39,6 @@ void main() {
   setUpAll(carregarFontes);
   setUp(Repositorios.reiniciar);
   tearDown(Repositorios.reiniciar);
-
-  testWidgets('Resultado exibe aviso ilustrativo (normal e desnutricao)', (
-    t,
-  ) async {
-    for (final r in [MockData.resultadoNormal, MockData.resultadoDesnutricao]) {
-      await _ir(t, const ResultadoScreen(), args: r);
-      expect(
-        find.textContaining('Resultado ilustrativo', skipOffstage: false),
-        findsOneWidget,
-      );
-    }
-  });
 
   testWidgets('Dados da criança sem responsável mostra "Não informado"', (
     t,

@@ -193,10 +193,7 @@ class DadosCriancaScreen extends StatelessWidget {
       Expanded(
         child: Text(
           text,
-          style: TextStyle(
-            color: context.cores.textoSecundario,
-            fontSize: 12,
-          ),
+          style: TextStyle(color: context.cores.textoSecundario, fontSize: 12),
         ),
       ),
     ],

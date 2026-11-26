@@ -2,9 +2,19 @@ import 'auth_service.dart';
 
 /// [AuthService] em memória, sem Firebase. Usado nos testes.
 class AuthServiceMemoria implements AuthService {
-  AuthServiceMemoria({Map<String, String>? contas, UsuarioLogado? logado})
-    : _contas = {...?contas},
-      _atual = logado;
+  AuthServiceMemoria({
+    Map<String, String>? contas,
+    UsuarioLogado? logado,
+    this.erroAoRestaurar,
+    this.erroAoSair,
+  }) : _contas = {...?contas},
+       _atual = logado;
+
+  /// Simula falha ao ler a sessão salva (lançado por [restaurarSessao]).
+  final Object? erroAoRestaurar;
+
+  /// Simula falha ao sair (lançado por [sair]).
+  final AuthException? erroAoSair;
 
   /// E-mail → senha das contas que existem.
   final Map<String, String> _contas;
@@ -17,7 +27,10 @@ class AuthServiceMemoria implements AuthService {
   UsuarioLogado? get atual => _atual;
 
   @override
-  Future<UsuarioLogado?> restaurarSessao() async => _atual;
+  Future<UsuarioLogado?> restaurarSessao() async {
+    if (erroAoRestaurar != null) throw erroAoRestaurar!;
+    return _atual;
+  }
 
   @override
   Future<UsuarioLogado> entrar({
@@ -41,5 +54,8 @@ class AuthServiceMemoria implements AuthService {
   }
 
   @override
-  Future<void> sair() async => _atual = null;
+  Future<void> sair() async {
+    if (erroAoSair != null) throw erroAoSair!;
+    _atual = null;
+  }
 }

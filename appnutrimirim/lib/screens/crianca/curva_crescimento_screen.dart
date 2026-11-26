@@ -5,7 +5,11 @@ import 'package:flutter/material.dart';
 
 import '../../data/curvas_referencia.dart';
 import '../../data/models.dart';
+import '../../data/oms_assets.dart';
+import '../../services/antropometria_oms.dart';
+import '../../services/zscore_avaliacao.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
@@ -48,9 +52,12 @@ String _meses(int m) => m == 1 ? '1 mês' : '$m meses';
 ///
 /// Recebe a criança pela rota: o `id` (recomendado) ou o objeto [Crianca].
 /// Sem argumento, mostra a criança em destaque (`c0`); os dados vêm dos
-/// repositórios.
+/// repositórios. As linhas de referência e o z-score saem das tabelas LMS da
+/// OMS 2006 ([carregarTabelas], por padrão os assets do app).
 class CurvaCrescimentoScreen extends StatefulWidget {
-  const CurvaCrescimentoScreen({super.key});
+  const CurvaCrescimentoScreen({super.key, this.carregarTabelas});
+
+  final Future<TabelasOms> Function()? carregarTabelas;
 
   @override
   State<CurvaCrescimentoScreen> createState() => _CurvaCrescimentoScreenState();
@@ -60,9 +67,40 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
   int _tab = 0;
   static const _tabs = ['Peso/Idade', 'Altura/Idade', 'Peso/Altura'];
 
+  TabelasOms? _tabelas;
+  bool _erroTabelas = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarTabelas();
+  }
+
+  Future<void> _carregarTabelas() async {
+    try {
+      final t = await (widget.carregarTabelas ?? carregarTabelasOms)();
+      if (mounted) setState(() => _tabelas = t);
+    } catch (_) {
+      if (mounted) setState(() => _erroTabelas = true);
+    }
+  }
+
+  /// P/E usa a tabela por comprimento antes dos 2 anos e por altura depois
+  /// (pela última avaliação); sem nascimento, pela posição registrada.
+  bool _porComprimento(Crianca c, Avaliacao? ultima) {
+    if (ultima == null) return true;
+    final nasc = c.nascimento;
+    if (nasc != null) return idadeEmDias(nasc, ultima.data) < 731;
+    return ultima.tipoMedida != 'em_pe';
+  }
+
   /// Monta o gráfico do indicador com as avaliações da criança.
   _ChartSpec _spec(IndicadorCurva ind, Crianca c, List<Avaliacao> avs) {
-    final ref = CurvaReferencia.de(ind, c.sexo);
+    final comprimento = _porComprimento(c, avs.isEmpty ? null : avs.first);
+    final tabelas = _tabelas;
+    final ref = tabelas == null
+        ? CurvaReferencia.eixos(ind, comprimento: comprimento)
+        : CurvaReferencia.oms(tabelas, ind, c.sexo, comprimento: comprimento);
     final porIdade = ind != IndicadorCurva.pesoAltura;
     final nasc = c.nascimento;
 
@@ -132,6 +170,24 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
     return 'A medida está fora da faixa deste gráfico (0 a 5 anos).';
   }
 
+  /// Z-score, percentil e situação da última avaliação no indicador da aba.
+  ({String z, String percentil, Situacao? situacao}) _zDaUltima(
+    Crianca c,
+    Avaliacao ultima,
+  ) {
+    final tabelas = _tabelas;
+    final ind = IndicadorCurva.values[_tab].oms;
+    final z = tabelas == null
+        ? null
+        : zScoreDaAvaliacao(tabelas, c, ultima, ind);
+    if (z == null) return (z: '—', percentil: '—', situacao: null);
+    return (
+      z: formatarDecimal(z, casas: 2),
+      percentil: formatarPercentil(z),
+      situacao: situacaoDoZScore(ind, z),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CriancaComAvaliacoes(
@@ -145,6 +201,8 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
     final ultima = avs.isEmpty ? null : avs.first;
     final spec = _spec(IndicadorCurva.values[_tab], c, avs);
     final aviso = _aviso(spec, c, avs);
+    final cores = context.cores;
+    final zUltima = ultima == null ? null : _zDaUltima(c, ultima);
     final textScaler = MediaQuery.textScalerOf(context);
     final sexo = c.sexo == Sexo.feminino ? 'Menina' : 'Menino';
 
@@ -177,24 +235,24 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
               children: [
                 Text(
                   spec.title,
-                  style: const TextStyle(
-                    color: Color(0xFF0F1C2E),
+                  style: TextStyle(
+                    color: cores.texto,
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                   ),
                 ),
                 Text(
                   c.nome,
-                  style: const TextStyle(
-                    color: AppColors.textBody,
+                  style: TextStyle(
+                    color: cores.texto,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
                 ),
                 Text(
                   '$sexo • 0 a 5 anos',
-                  style: const TextStyle(
-                    color: AppColors.textMuted,
+                  style: TextStyle(
+                    color: cores.textoSecundario,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
@@ -219,7 +277,7 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
                         width: box.maxWidth,
                         height: altura,
                         child: CustomPaint(
-                          painter: _GrowthChartPainter(spec, textScaler),
+                          painter: _GrowthChartPainter(spec, textScaler, cores),
                         ),
                       ),
                     );
@@ -229,8 +287,18 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
                   const SizedBox(height: 8),
                   Text(
                     aviso,
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
+                    style: TextStyle(
+                      color: cores.textoSecundario,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+                if (_erroTabelas) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Não foi possível carregar as curvas da OMS.',
+                    style: TextStyle(
+                      color: cores.textoSecundario,
                       fontSize: 12,
                     ),
                   ),
@@ -240,11 +308,11 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
           ),
           const SizedBox(height: 22),
           if (ultima == null)
-            const AppCard(
+            AppCard(
               child: Text(
                 'Sem avaliações registradas',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textMuted),
+                style: TextStyle(color: cores.textoSecundario),
               ),
             )
           else
@@ -255,8 +323,13 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
                   ? '(${formatarIdade(c.nascimento!, hoje: ultima.data)})'
                   : null,
               peso: formatarPeso(ultima.pesoKg),
-              // Z-score e percentil saem do cálculo da OMS (task de back-end).
-              situacao: ultima.situacao,
+              zScore: zUltima!.z,
+              percentil: zUltima.percentil,
+              situacao: zUltima.situacao ?? ultima.situacao,
+              footer: Text(
+                'Z-score e percentil de ${_tabs[_tab]} (OMS 2006).',
+                style: TextStyle(color: cores.textoSecundario, fontSize: 12),
+              ),
             ),
           const SizedBox(height: 22),
           OutlinedButton(
@@ -283,6 +356,7 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
 
   Widget _tabButton(int i) {
     final selected = i == _tab;
+    final cores = context.cores;
     // Aparência de 34 dp de altura, com área tocável de 48 dp.
     return Semantics(
       button: true,
@@ -297,10 +371,10 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
               height: 34,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: selected ? AppColors.primary : AppColors.surface,
+                color: selected ? AppColors.primary : cores.superficie,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: selected ? AppColors.primary : AppColors.border,
+                  color: selected ? AppColors.primary : cores.borda,
                 ),
               ),
               child: FittedBox(
@@ -309,8 +383,8 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
                   _tabs[i],
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                    color: selected ? Colors.white : AppColors.textMuted,
+                    fontSize: 12,
+                    color: selected ? Colors.white : cores.textoSecundario,
                   ),
                 ),
               ),
@@ -323,9 +397,11 @@ class _CurvaCrescimentoScreenState extends State<CurvaCrescimentoScreen> {
 }
 
 class _GrowthChartPainter extends CustomPainter {
-  _GrowthChartPainter(this.spec, this.textScaler);
+  _GrowthChartPainter(this.spec, this.textScaler, this.cores)
+    : _labelStyle = TextStyle(color: cores.textoSecundario, fontSize: 12);
   final _ChartSpec spec;
   final TextScaler textScaler;
+  final AppPalette cores;
 
   /// Cor das linhas (só desenho).
   static const _curveColor = {
@@ -347,11 +423,8 @@ class _GrowthChartPainter extends CustomPainter {
 
   static const _ponto = Color(0xFF1A73E8);
 
-  // textMuted tem 5,1:1 sobre branco (o textHint anterior tinha 3,7:1).
-  static const _labelStyle = TextStyle(
-    color: AppColors.textMuted,
-    fontSize: 11,
-  );
+  // textoSecundario tem 5,1:1 sobre branco (o textHint anterior, 3,7:1).
+  final TextStyle _labelStyle;
 
   TextPainter _tp(String s, TextStyle style) => TextPainter(
     text: TextSpan(
@@ -375,7 +448,7 @@ class _GrowthChartPainter extends CustomPainter {
     final xLabels = {
       for (final x in ref.xTicks) x: _tp(x.toStringAsFixed(0), _labelStyle),
     };
-    final extraStyle = _labelStyle.copyWith(fontSize: 11);
+    final extraStyle = _labelStyle;
     final extras = <double, TextPainter>{
       for (final x in ref.xTicks)
         if (spec.xTickLabels[x.round()] case final s?) x: _tp(s, extraStyle),
@@ -386,7 +459,7 @@ class _GrowthChartPainter extends CustomPainter {
           z > 0 ? '+$z' : '$z',
           TextStyle(
             color: _labelColor[z],
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -419,7 +492,7 @@ class _GrowthChartPainter extends CustomPainter {
     );
 
     final grid = Paint()
-      ..color = AppColors.border
+      ..color = cores.bordaSuave
       ..strokeWidth = 1;
 
     // Grade horizontal + rótulos Y (pula rótulos que se encostariam).
@@ -463,7 +536,7 @@ class _GrowthChartPainter extends CustomPainter {
 
     // Eixos
     final axis = Paint()
-      ..color = AppColors.textMuted
+      ..color = cores.textoSecundario
       ..strokeWidth = 1.2;
     canvas.drawLine(plot.bottomLeft, plot.bottomRight, axis);
     canvas.drawLine(plot.topLeft, plot.bottomLeft, axis);
@@ -534,9 +607,9 @@ class _GrowthChartPainter extends CustomPainter {
         _tp(
           lines[i],
           i == lines.length - 1
-              ? const TextStyle(color: AppColors.textMuted, fontSize: 11)
-              : const TextStyle(
-                  color: AppColors.textDark,
+              ? TextStyle(color: cores.textoSecundario, fontSize: 12)
+              : TextStyle(
+                  color: cores.texto,
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                 ),
@@ -564,7 +637,7 @@ class _GrowthChartPainter extends CustomPainter {
         ..color = Colors.black12
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
-    canvas.drawRRect(tip, Paint()..color = Colors.white);
+    canvas.drawRRect(tip, Paint()..color = cores.superficie);
     var y = tip.top + 8;
     for (final tp in tps) {
       tp.paint(canvas, Offset(tip.left + 12, y));
@@ -604,5 +677,5 @@ class _GrowthChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GrowthChartPainter old) =>
-      old.spec != spec || old.textScaler != textScaler;
+      old.spec != spec || old.textScaler != textScaler || old.cores != cores;
 }
