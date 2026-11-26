@@ -25,7 +25,8 @@ PosicaoMedicao posicaoDaAvaliacao(Avaliacao a, {int? idadeDias}) =>
 ///
 /// Usa o valor gravado em [Avaliacao.indicadores] quando existe (o z-score
 /// calculado no registro, com o edema observado). Senão, calcula pelas
-/// [tabelas] sem edema, porque a avaliação não guarda essa informação.
+/// [tabelas] com o edema gravado. Registros antigos sem esse campo mantêm
+/// o comportamento anterior (sem edema).
 /// Nulo sem nascimento, fora da tabela ou com valor a conferir.
 double? zScoreDaAvaliacao(
   TabelasOms tabelas,
@@ -33,6 +34,7 @@ double? zScoreDaAvaliacao(
   Avaliacao a,
   IndicadorOms indicador,
 ) {
+  if (a.edema == true && indicador != IndicadorOms.alturaIdade) return null;
   final gravado = a.indicadores[indicadorAntropometrico(indicador).chave];
   if (gravado != null) return gravado.zScore;
 
@@ -46,7 +48,7 @@ double? zScoreDaAvaliacao(
     pesoKg: a.pesoKg,
     alturaCm: a.alturaCm,
     posicao: posicaoDaAvaliacao(a, idadeDias: idadeEmDias(nascimento, a.data)),
-    edema: false,
+    edema: a.edema ?? false,
   );
   final r = validacao.indicadores.firstWhere((i) => i.indicador == indicador);
   return r.estado == EstadoPlausibilidade.semAlerta ? r.zScore : null;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../routes.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../widgets/common.dart';
 
@@ -16,10 +17,10 @@ class NovaAvaliacaoScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
         children: [
-          const Text(
+          Text(
             'Selecione uma das opções abaixo para iniciar o registro das medidas antropométricas.',
             style: TextStyle(
-              color: AppColors.textMuted,
+              color: context.cores.textoSecundario,
               fontSize: 14,
               height: 1.4,
             ),
@@ -75,8 +76,8 @@ class _OptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      color: bg,
-      borderColor: color,
+      color: context.cores.ehAltoContraste ? context.cores.superficie : bg,
+      borderColor: context.cores.ehAltoContraste ? context.cores.borda : color,
       radius: 16,
       padding: const EdgeInsets.all(20),
       onTap: onTap,
@@ -105,8 +106,10 @@ class _OptionCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             text,
-            style: const TextStyle(
-              color: AppColors.textMutedOnTint,
+            style: TextStyle(
+              color: context.cores.ehAltoContraste
+                  ? context.cores.textoSecundario
+                  : AppColors.textMutedOnTint,
               fontSize: 12,
               height: 1.4,
             ),

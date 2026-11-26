@@ -108,6 +108,7 @@ class AvaliacaoRepositoryMemoria implements AvaliacaoRepository {
       limparTipoMedida: avaliacao.tipoMedida == null,
       indicadores: avaliacao.indicadores,
       desnutricao: avaliacao.desnutricao,
+      edema: avaliacao.edema,
       versaoTabelaOms: avaliacao.versaoTabelaOms,
       retornoSugerido: avaliacao.retornoSugerido,
       limparRetornoSugerido: avaliacao.retornoSugerido == null,

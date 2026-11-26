@@ -5,6 +5,7 @@ import 'package:appnutrimirim/data/models.dart';
 import 'package:appnutrimirim/screens/avaliacao/cadastro_crianca_screen.dart';
 import 'package:appnutrimirim/theme/app_theme.dart';
 import 'package:appnutrimirim/widgets/common.dart';
+import 'package:appnutrimirim/repositories/repositorios.dart';
 
 Finder _campo(String label) => find.descendant(
   of: find.byWidgetPredicate((w) => w is LabeledField && w.label == label),
@@ -51,13 +52,22 @@ Future<void> _dadosObrigatorios(WidgetTester t) async {
   }.entries) {
     await t.enterText(_campo(entrada.key), entrada.value);
   }
-  await t.tap(find.byType(DropdownButtonFormField<String>));
-  await t.pumpAndSettle();
-  await t.tap(find.text('UBS Centro').last);
-  await t.pumpAndSettle();
 }
 
 void main() {
+  setUp(
+    () => Repositorios.usarMemoria(
+      sessao: const SessaoProfissional(
+        uid: 'teste',
+        nome: 'Teste',
+        papel: PapelProfissional.acs,
+        ubsIds: ['ubs-teste'],
+        ubsAtualId: 'ubs-teste',
+        nomesUbs: {'ubs-teste': 'UBS Teste'},
+      ),
+    ),
+  );
+  tearDown(Repositorios.reiniciar);
   testWidgets('sexo começa vazio e anuncia botão e seleção exclusiva', (
     t,
   ) async {
@@ -103,9 +113,10 @@ void main() {
     expect(find.text('Escolha a data de nascimento'), findsNothing);
     await _salvar(t);
     expect(find.text('MEDIDAS_STUB'), findsOneWidget);
-    final crianca =
+    final id =
         ModalRoute.of(t.element(find.text('MEDIDAS_STUB')))!.settings.arguments
-            as Crianca;
+            as String;
+    final crianca = (await Repositorios.criancas.porId(id))!;
     expect(crianca.nome, 'Criança de teste');
     expect(crianca.sexo, Sexo.feminino);
     expect(crianca.nascimento, DateUtils.dateOnly(DateTime.now()));

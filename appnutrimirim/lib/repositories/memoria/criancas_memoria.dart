@@ -41,7 +41,7 @@ class CriancaRepositoryMemoria implements CriancaRepository {
       filtrarCriancas(banco.criancas.values.where((c) => c.ativa), termo);
 
   @override
-  Future<void> cadastrar(Crianca crianca) async {
+  Future<void> cadastrar(Crianca crianca, {String? ubsId}) async {
     validarCrianca(crianca, banco.agora());
     if (crianca.id.isEmpty) {
       throw const DadosInvalidos('Use novoId() para gerar o id da criança.');
@@ -66,6 +66,7 @@ class CriancaRepositoryMemoria implements CriancaRepository {
     banco.criancas[crianca.id] = atual.copyWith(
       nome: crianca.nome.trim(),
       sexo: crianca.sexo,
+      cpf: crianca.cpf,
       bairro: crianca.bairro,
       endereco: crianca.endereco,
       nascimento: crianca.nascimento,

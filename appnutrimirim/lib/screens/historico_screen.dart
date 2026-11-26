@@ -137,6 +137,18 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
                       ),
                     ),
                     StatusBadge(a.situacao, dense: true),
+                    IconButton(
+                      tooltip: 'Corrigir avaliação',
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        color: context.cores.icone,
+                      ),
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        Routes.registroMedidas,
+                        arguments: a,
+                      ),
+                    ),
                     Icon(
                       Icons.chevron_right,
                       size: 20,

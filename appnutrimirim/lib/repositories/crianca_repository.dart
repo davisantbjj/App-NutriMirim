@@ -29,10 +29,10 @@ abstract interface class CriancaRepository {
   Future<List<Crianca>> buscar(String termo);
 
   /// Cadastra uma criança nova (`crianca.id` vem de [novoId]). No Firestore a
-  /// criança é gravada em `sessao.ubsAtualId`; o campo `Crianca.ubs` do objeto
-  /// recebido é ignorado. Por isso o dropdown "UBS de Referência" do cadastro
-  /// precisa listar as UBS da sessão (decisão pendente com Larissa e Alexandre). Lança `DadosInvalidos` / `EstadoInvalido`.
-  Future<void> cadastrar(Crianca crianca);
+  /// criança é gravada em [ubsId] ou, quando omitido, `sessao.ubsAtualId`.
+  /// O id escolhido precisa pertencer à sessão (master pode escolher qualquer
+  /// UBS ativa). `Crianca.ubs` é apenas o nome para exibição.
+  Future<void> cadastrar(Crianca crianca, {String? ubsId});
 
   /// Edita os dados da criança (nome, sexo, bairro, endereço, nascimento,
   /// responsável). `ativa`, `ubs` e `cadastradoEm` são ignorados. [motivo]

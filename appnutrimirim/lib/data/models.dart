@@ -45,13 +45,20 @@ enum Situacao {
 class Responsavel {
   const Responsavel({
     required this.nome,
-    required this.cpfMascarado,
+    String? cpf,
+    String? cpfMascarado,
     required this.telefone,
     required this.email,
-  });
+  }) : assert(cpf == null || cpfMascarado == null),
+       cpf = cpf ?? cpfMascarado ?? '';
 
   final String nome;
-  final String cpfMascarado;
+
+  /// CPF completo, com ou sem pontuação. A máscara visual não anonimiza dados.
+  final String cpf;
+
+  /// Alias para as telas antigas; novos fluxos usam [cpf].
+  String get cpfMascarado => cpf;
   final String telefone;
   final String email;
 }
@@ -69,6 +76,7 @@ class Crianca {
     this.nascimento,
     this.responsavel,
     this.ativa = true,
+    this.cpf = '',
   });
 
   /// Identificador estável (no back-end será o id do registro).
@@ -88,6 +96,9 @@ class Crianca {
   /// `false` = cadastro desativado (exclusão lógica; nada é apagado).
   final bool ativa;
 
+  /// CPF opcional da criança, separado do CPF do responsável.
+  final String cpf;
+
   /// Cópia com campos trocados. Para zerar [nascimento] ou [responsavel],
   /// use [limparNascimento] / [limparResponsavel] (null sozinho = manter).
   Crianca copyWith({
@@ -103,6 +114,7 @@ class Crianca {
     Responsavel? responsavel,
     bool limparResponsavel = false,
     bool? ativa,
+    String? cpf,
   }) => Crianca(
     id: id,
     nome: nome ?? this.nome,
@@ -115,6 +127,7 @@ class Crianca {
     nascimento: limparNascimento ? null : (nascimento ?? this.nascimento),
     responsavel: limparResponsavel ? null : (responsavel ?? this.responsavel),
     ativa: ativa ?? this.ativa,
+    cpf: cpf ?? this.cpf,
   );
 }
 
@@ -136,6 +149,7 @@ class Avaliacao {
     this.versaoTabelaOms = 'oms-2006',
     this.retornoSugerido,
     this.excluida = false,
+    this.edema,
   });
 
   /// Id da avaliação (vazio até ser registrada; use `novoId()` do repositório).
@@ -164,6 +178,9 @@ class Avaliacao {
   final DateTime? retornoSugerido;
   final bool excluida;
 
+  /// Nulo nos registros antigos: exige confirmação ao corrigir a medição.
+  final bool? edema;
+
   Avaliacao copyWith({
     String? id,
     String? criancaId,
@@ -183,6 +200,7 @@ class Avaliacao {
     DateTime? retornoSugerido,
     bool limparRetornoSugerido = false,
     bool? excluida,
+    bool? edema,
   }) => Avaliacao(
     id: id ?? this.id,
     criancaId: criancaId ?? this.criancaId,
@@ -202,6 +220,7 @@ class Avaliacao {
         ? null
         : (retornoSugerido ?? this.retornoSugerido),
     excluida: excluida ?? this.excluida,
+    edema: edema ?? this.edema,
   );
 }
 

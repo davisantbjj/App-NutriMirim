@@ -1,5 +1,6 @@
 import '../data/models.dart';
 import '../utils/texto.dart';
+import '../services/validadores.dart';
 import 'excecoes.dart';
 
 /// RF14: tempo em que o autor ainda pode corrigir/excluir a avaliação.
@@ -27,6 +28,8 @@ DateTime _soData(DateTime d) => DateTime(d.year, d.month, d.day);
 /// Valida os campos de uma criança (cadastro e edição), com as mesmas faixas
 /// das regras do Firestore.
 void validarCrianca(Crianca c, DateTime agora) {
+  final erroCpf = validarCpf(c.cpf, obrigatorio: false);
+  if (erroCpf != null) throw DadosInvalidos('CPF da criança inválido.');
   final nome = c.nome.trim();
   if (nome.length < 2 || nome.length > 120) {
     throw const DadosInvalidos('O nome da criança deve ter de 2 a 120 letras.');
@@ -54,7 +57,7 @@ void validarCrianca(Crianca c, DateTime agora) {
       );
     }
     // Vazio apaga o valor; com `*` (CPF escondido) o valor antigo é mantido.
-    final cpf = r.cpfMascarado.trim();
+    final cpf = r.cpf.trim();
     if (cpf.isNotEmpty &&
         !cpf.contains('*') &&
         somenteDigitos(cpf).length != 11) {

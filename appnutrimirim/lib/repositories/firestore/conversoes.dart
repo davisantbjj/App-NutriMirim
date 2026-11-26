@@ -89,11 +89,7 @@ Map<String, Object?> responsavelParaMap(
 }) {
   final mapa = <String, Object?>{'nome': r.nome.trim()};
 
-  final cpf = _digitosOuAnterior(
-    r.cpfMascarado,
-    anterior?['cpf'],
-    _cpfGravavel,
-  );
+  final cpf = _digitosOuAnterior(r.cpf, anterior?['cpf'], _cpfGravavel);
   if (cpf != null) mapa['cpf'] = cpf;
 
   final tel = _digitosOuAnterior(
@@ -126,7 +122,7 @@ Responsavel? responsavelDeMap(Object? valor) {
   final tel = valor['telefone'];
   return Responsavel(
     nome: _texto(valor['nome']) ?? '',
-    cpfMascarado: cpf is String ? formatarCpfDigitos(cpf) : '',
+    cpf: cpf is String ? formatarCpfDigitos(cpf) : '',
     telefone: tel is String ? _formatarTelefoneDigitos(tel) : '',
     email: _texto(valor['email']) ?? '',
   );
@@ -145,6 +141,7 @@ Map<String, Object?> criancaEditavelParaMap(
   return {
     'nome': nome,
     'nomeBusca': normalizarBusca(nome),
+    'cpf': c.cpf.isEmpty ? null : somenteDigitos(c.cpf),
     'sexo': c.sexo.name,
     'bairro': c.bairro,
     'endereco': c.endereco,
@@ -179,6 +176,7 @@ Crianca criancaDeMap(
   return Crianca(
     id: id,
     nome: _texto(d['nome']) ?? '',
+    cpf: _texto(d['cpf']) ?? '',
     sexo: sexoDeTexto(d['sexo']),
     bairro: _texto(d['bairro']) ?? '',
     endereco: _texto(d['endereco']) ?? '',
@@ -234,6 +232,7 @@ Map<String, Object?> avaliacaoCorrigivelParaMap(Avaliacao a) => {
   'situacao': a.situacao.name,
   'indicadores': indicadoresParaMap(a.indicadores),
   'desnutricao': a.desnutricao,
+  'edema': a.edema,
   'versaoTabelaOms': a.versaoTabelaOms,
   'retornoSugerido': a.retornoSugerido == null
       ? null
@@ -278,6 +277,7 @@ Avaliacao avaliacaoDeMap(String id, Map<String, Object?> d) => Avaliacao(
   tipoMedida: _texto(d['tipoMedida']),
   indicadores: indicadoresDeMap(d['indicadores']),
   desnutricao: _booleano(d['desnutricao']) ?? false,
+  edema: _booleano(d['edema']),
   versaoTabelaOms: _texto(d['versaoTabelaOms']) ?? 'oms-2006',
   retornoSugerido: textoParaData(d['retornoSugerido']),
   excluida: _booleano(d['excluida']) ?? false,
