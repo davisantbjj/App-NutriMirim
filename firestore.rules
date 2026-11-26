@@ -200,7 +200,7 @@ service cloud.firestore {
           ])
           && d.keys().hasOnly([
             'ubsId', 'nome', 'nomeBusca', 'sexo', 'bairro', 'endereco',
-            'nascimento', 'cadastradoEm', 'responsavel', 'ativa',
+            'nascimento', 'cadastradoEm', 'responsavel', 'ativa', 'cpf',
             'ultimaSituacao', 'ultimaAvaliacaoEm', 'versao',
             'criadoPor', 'criadoEm', 'atualizadoEm',
             'alteradoPor', 'alteradoEm', 'motivoAlteracao'
@@ -210,6 +210,8 @@ service cloud.firestore {
           && texto(d.nomeBusca, 2, 120)
           && d.nomeBusca == d.nomeBusca.lower()
           && d.sexo in ['masculino', 'feminino']
+          && (ausenteOuNulo(d, 'cpf')
+              || (d.cpf is string && d.cpf.matches('^[0-9]{11}$')))
           && (!('bairro' in d) || texto(d.bairro, 0, 80))
           && (!('endereco' in d) || texto(d.endereco, 0, 200))
           && (ausenteOuNulo(d, 'nascimento') || dataPassada(d.nascimento))
@@ -238,7 +240,7 @@ service cloud.firestore {
         && criancaValida(request.resource.data)
         && request.resource.data.keys().hasOnly([
             'ubsId', 'nome', 'nomeBusca', 'sexo', 'bairro', 'endereco',
-            'nascimento', 'cadastradoEm', 'responsavel', 'ativa', 'versao',
+            'nascimento', 'cadastradoEm', 'responsavel', 'ativa', 'versao', 'cpf',
             'criadoPor', 'criadoEm', 'atualizadoEm'
           ])
         && request.resource.data.criadoPor == request.auth.uid
@@ -256,7 +258,7 @@ service cloud.firestore {
         && (
           (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'nome', 'nomeBusca', 'sexo', 'bairro', 'endereco', 'nascimento',
-              'responsavel', 'ativa', 'versao', 'atualizadoEm',
+              'responsavel', 'ativa', 'versao', 'atualizadoEm', 'cpf',
               'alteradoPor', 'alteradoEm', 'motivoAlteracao'
             ])
             && request.resource.data.versao == resource.data.get('versao', 0) + 1
@@ -288,6 +290,7 @@ service cloud.firestore {
           return daMinhaUbs(antes.ubsId)
             && log.keys().hasOnly([
                 'alteradoPor', 'alteradoEm', 'motivo', 'versao',
+                'cpfAnterior',
                 'nomeAnterior', 'responsavelAnterior', 'ativaAnterior',
                 'nascimentoAnterior', 'sexoAnterior', 'bairroAnterior', 'enderecoAnterior'
               ])
@@ -306,6 +309,7 @@ service cloud.firestore {
             && texto(log.motivo, 3, 200)
             && log.motivo == depois.motivoAlteracao
             && log.nomeAnterior == antes.nome
+            && log.get('cpfAnterior', null) == antes.get('cpf', null)
             && log.ativaAnterior == antes.ativa
             && log.responsavelAnterior == antes.get('responsavel', null)
             && log.nascimentoAnterior == antes.get('nascimento', null)
@@ -356,7 +360,7 @@ service cloud.firestore {
           && d.keys().hasOnly([
             'ubsId', 'criancaId', 'profissionalId', 'profissionalNome', 'microarea',
             'data', 'pesoKg', 'alturaCm', 'tipoMedida', 'situacao', 'indicadores',
-            'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida',
+            'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida', 'edema',
             'motivoExclusao', 'versao', 'criadoEm', 'atualizadoEm',
             'alteradoPor', 'alteradoEm', 'motivoAlteracao'
           ])
@@ -374,6 +378,7 @@ service cloud.firestore {
           && situacaoValida(d.situacao)
           && indicadoresValidos(d.indicadores)
           && d.desnutricao is bool
+          && (ausenteOuNulo(d, 'edema') || d.edema is bool)
           && texto(d.versaoTabelaOms, 1, 40)
           && (ausenteOuNulo(d, 'retornoSugerido') || dataTexto(d.retornoSugerido))
           && d.excluida is bool
@@ -401,7 +406,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
             'ubsId', 'criancaId', 'profissionalId', 'profissionalNome', 'microarea',
             'data', 'pesoKg', 'alturaCm', 'tipoMedida', 'situacao', 'indicadores',
-            'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida',
+            'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida', 'edema',
             'versao', 'criadoEm', 'atualizadoEm'
           ])
         && criancaAtivaDaUbs(request.resource.data.criancaId, request.resource.data.ubsId)
@@ -426,7 +431,7 @@ service cloud.firestore {
         && resource.data.excluida == false
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'data', 'pesoKg', 'alturaCm', 'tipoMedida', 'situacao', 'indicadores',
-            'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida',
+            'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida', 'edema',
             'motivoExclusao', 'versao', 'atualizadoEm',
             'alteradoPor', 'alteradoEm', 'motivoAlteracao'
           ])
@@ -452,6 +457,7 @@ service cloud.firestore {
           return daMinhaUbs(antes.ubsId)
             && log.keys().hasOnly([
                 'alteradoPor', 'alteradoEm', 'motivo', 'versao', 'acao',
+                'edemaAnterior',
                 'pesoKgAnterior', 'alturaCmAnterior', 'dataAnterior',
                 'situacaoAnterior', 'indicadoresAnterior', 'desnutricaoAnterior'
               ])
@@ -477,6 +483,7 @@ service cloud.firestore {
             && log.alturaCmAnterior == antes.alturaCm
             && log.dataAnterior == antes.data
             && log.situacaoAnterior == antes.situacao
+            && log.get('edemaAnterior', null) == antes.get('edema', null)
             && log.indicadoresAnterior == antes.indicadores
             && log.desnutricaoAnterior == antes.desnutricao;
         }

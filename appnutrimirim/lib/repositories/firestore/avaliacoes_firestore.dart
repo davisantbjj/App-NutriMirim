@@ -261,6 +261,7 @@ class AvaliacaoRepositoryFirestore implements AvaliacaoRepository {
       'situacaoAnterior': antes['situacao'],
       'indicadoresAnterior': antes['indicadores'],
       'desnutricaoAnterior': antes['desnutricao'],
+      'edemaAnterior': antes['edema'],
     });
     return lote.commit();
   }

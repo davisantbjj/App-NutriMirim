@@ -184,7 +184,7 @@ void main() {
   testWidgets('Cadastro com id existente preenche o formulário', (t) async {
     await _ir(t, const CadastroCriancaScreen(), args: 'c1');
     expect(find.text('Talita Feitosa'), findsOneWidget);
-    expect(find.text('Salvar e Continuar'), findsOneWidget);
+    expect(find.text('Salvar alterações'), findsOneWidget);
   });
 
   testWidgets('Registro de medidas com id inexistente mostra mensagem', (
