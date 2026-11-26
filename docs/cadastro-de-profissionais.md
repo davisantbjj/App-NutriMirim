@@ -111,6 +111,8 @@ Crie **uma conta fictícia de cada papel** na mesma UBS de teste (e o médico em
 | nutri.teste@... | `nutricionista` | `ubs-centro` | — |
 | master.teste@... | `master` | — | — |
 
+Criadas em 25/11/2026 com os e-mails `davisant28+master`, `+acs`, `+medico` e `+nutri` (`@gmail.com`) e as UBS `ubs-centro` e `ubs-norte`. Detalhes em `CONTEXTO_IA.md` ("Contas de teste").
+
 ## Depois de 01/12 (opcional)
 
 - **Script com o Admin SDK** em `firebase/` que cria conta e perfil a partir de um JSON. Exige uma chave de conta de serviço, que **nunca** vai para o Git.

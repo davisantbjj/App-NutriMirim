@@ -310,4 +310,4 @@ npx --prefix firebase firebase login
 npx --prefix firebase firebase deploy --only firestore:rules,firestore:indexes --project <id-do-projeto>
 ```
 
-Para publicar só as regras: `--only firestore:rules`. Nada foi publicado até agora.
+Para publicar só as regras: `--only firestore:rules`. Regras e índices publicados pela primeira vez em 25/11/2026 no projeto `app-nutrimirim`.
