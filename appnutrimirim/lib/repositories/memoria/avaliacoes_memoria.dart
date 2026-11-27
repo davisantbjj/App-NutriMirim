@@ -82,6 +82,8 @@ class AvaliacaoRepositoryMemoria implements AvaliacaoRepository {
       criadoEm: agora,
       profissionalId: banco.usuario.uid,
       profissionalNome: banco.usuario.nome,
+      profissionalPapel: banco.usuario.papel,
+      limparProfissionalPapel: banco.usuario.papel == null,
       excluida: false,
     );
     banco.avaliacoes[id] = salva;

@@ -253,6 +253,7 @@ class _RegistroMedidasScreenState extends State<RegistroMedidasScreen> {
       criadoEm: inicial?.criadoEm,
       profissionalId: inicial?.profissionalId,
       profissionalNome: inicial?.profissionalNome,
+      profissionalPapel: inicial?.profissionalPapel,
     );
     setState(() {
       _salvando = true;

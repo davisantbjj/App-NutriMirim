@@ -89,6 +89,7 @@ O Console grava como administrador e **não confere os campos**. Um erro de digi
 - [ ] O Document ID do perfil é exatamente o **User UID** da conta.
 - [ ] `papel` está em minúsculas e é um de `master`, `acs`, `medico`, `nutricionista` (sem acento: `medico`).
 - [ ] `ubsIds` é do tipo **array** (não string) e cada id existe em `ubs`.
+- [ ] `ubsIds` tem **no máximo 20** UBS. O Console não passa pelas regras, que recusam mais de 20; com mais de 30, as consultas do app (`whereIn`) falham e o profissional não vê nenhuma criança.
 - [ ] `ativo` é **boolean** `true` (não a string `"true"`).
 - [ ] Não há campos a mais nem com nome diferente (ex.: `ubsId`, `microArea`).
 - [ ] A pessoa consegue entrar e ver as crianças da UBS dela.

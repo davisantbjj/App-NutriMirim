@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../repositories/sessao_profissional.dart';
 import '../theme/app_colors.dart';
 
 enum Sexo { masculino, feminino }
@@ -142,6 +143,7 @@ class Avaliacao {
     this.criadoEm,
     this.profissionalId,
     this.profissionalNome,
+    this.profissionalPapel,
     this.microarea,
     this.tipoMedida,
     this.indicadores = const {},
@@ -166,6 +168,9 @@ class Avaliacao {
   final DateTime? criadoEm;
   final String? profissionalId;
   final String? profissionalNome;
+
+  /// Papel de quem registrou (nulo nas avaliações gravadas antes de 26/11/2026).
+  final PapelProfissional? profissionalPapel;
   final String? microarea;
 
   /// `deitado` ou `em_pe`.
@@ -191,6 +196,8 @@ class Avaliacao {
     DateTime? criadoEm,
     String? profissionalId,
     String? profissionalNome,
+    PapelProfissional? profissionalPapel,
+    bool limparProfissionalPapel = false,
     String? microarea,
     String? tipoMedida,
     bool limparTipoMedida = false,
@@ -211,6 +218,9 @@ class Avaliacao {
     criadoEm: criadoEm ?? this.criadoEm,
     profissionalId: profissionalId ?? this.profissionalId,
     profissionalNome: profissionalNome ?? this.profissionalNome,
+    profissionalPapel: limparProfissionalPapel
+        ? null
+        : (profissionalPapel ?? this.profissionalPapel),
     microarea: microarea ?? this.microarea,
     tipoMedida: limparTipoMedida ? null : (tipoMedida ?? this.tipoMedida),
     indicadores: indicadores ?? this.indicadores,

@@ -201,6 +201,9 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).first,
       );
+      // Garante o botão inteiro acima da barra inferior antes do toque.
+      await t.ensureVisible(find.text('Sair da conta'));
+      await t.pumpAndSettle();
       await t.tap(find.text('Sair da conta'));
       await t.pump();
       expect(find.text('Não foi possível sair da conta.'), findsOneWidget);

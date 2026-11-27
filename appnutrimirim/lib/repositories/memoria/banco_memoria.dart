@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../data/mock_data.dart';
 import '../../data/models.dart';
+import '../sessao_profissional.dart';
 
 /// Quem está "logado" nas implementações em memória (usado na regra do autor).
 class UsuarioAtual {
@@ -9,6 +10,7 @@ class UsuarioAtual {
     required this.uid,
     required this.nome,
     this.master = false,
+    this.papel,
   });
 
   /// Usuário padrão enquanto não existe login.
@@ -20,6 +22,9 @@ class UsuarioAtual {
   final String uid;
   final String nome;
   final bool master;
+
+  /// Papel gravado nas avaliações (nulo no usuário local de teste).
+  final PapelProfissional? papel;
 }
 
 /// Registro de uma alteração (espelha `alteracoes/{versao}` do Firestore).

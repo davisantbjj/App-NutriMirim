@@ -251,6 +251,30 @@ void main() {
       final salva = await repo.registrar(_av('c1'));
       expect(salva.profissionalId, 'beto');
     });
+
+    test('o papel vem do usuário logado, não do objeto', () async {
+      banco.usuario = const UsuarioAtual(
+        uid: 'beto',
+        nome: 'Beto',
+        papel: PapelProfissional.nutricionista,
+      );
+      final salva = await repo.registrar(
+        _av('c1').copyWith(profissionalPapel: PapelProfissional.master),
+      );
+      expect(salva.profissionalPapel, PapelProfissional.nutricionista);
+      expect(
+        banco.avaliacoes[salva.id]!.profissionalPapel,
+        PapelProfissional.nutricionista,
+      );
+    });
+
+    test('usuário sem papel não herda o papel do objeto', () async {
+      banco.usuario = const UsuarioAtual(uid: 'beto', nome: 'Beto');
+      final salva = await repo.registrar(
+        _av('c1').copyWith(profissionalPapel: PapelProfissional.master),
+      );
+      expect(salva.profissionalPapel, isNull);
+    });
   });
 
   group('ultimaDe e ordenação', () {

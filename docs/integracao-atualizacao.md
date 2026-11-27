@@ -19,7 +19,7 @@ Branch criada a partir de `origin/develop` em `cddf60c`, em 18/11/2026. Reúne o
 - A máscara de CPF tem implementação única, com preservação do cursor e rejeição de entradas acima de 11 dígitos. A máscara de telefone e o calendário em português foram preservados.
 - Os testes anteriores de cadastro foram mantidos também em `cadastro_localizacao_mascaras_test.dart`. Os testes de medidas foram adaptados ao fluxo OMS, substituindo a regra provisória de peso fixo.
 - Dois testes em `integracao_cadastro_oms_test.dart` verificam o fluxo real do cadastro até medidas por ID e por objeto, com preservação dos dados.
-- Os registros históricos das branches foram mantidos em `CONTEXTO_IA.md`; as verificações antigas continuam descrevendo o estado de suas respectivas datas.
+- Os registros históricos das branches foram mantidos em `CONTEXTO_IA.md`. _(26/11/2026: as verificações e listas de tarefas antigas foram trocadas pela lista única de "Pendências"; o histórico de cada pedido continua no "Registro de prompts".)_
 
 ## Validação
 

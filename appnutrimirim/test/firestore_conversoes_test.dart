@@ -1,5 +1,6 @@
 import 'package:appnutrimirim/data/models.dart';
 import 'package:appnutrimirim/repositories/firestore/conversoes.dart';
+import 'package:appnutrimirim/repositories/sessao_profissional.dart';
 import 'package:appnutrimirim/utils/texto.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import 'package:flutter_test/flutter_test.dart';
@@ -268,6 +269,34 @@ void main() {
       expect(m.keys, containsAll(['data', 'pesoKg', 'alturaCm', 'situacao']));
       expect(m.containsKey('excluida'), isFalse);
       expect(m.containsKey('criancaId'), isFalse);
+    });
+    test('papel do autor: gravado pelo nome e lido de volta', () {
+      final m = avaliacaoParaMap(
+        avaliacao,
+        ubsId: 'u',
+        profissionalId: 'p',
+        profissionalNome: 'Ana Souza',
+        profissionalPapel: PapelProfissional.acs,
+      );
+      expect(m['profissionalPapel'], 'acs');
+      expect(avaliacaoDeMap('a', m).profissionalPapel, PapelProfissional.acs);
+    });
+    test('papel do autor ausente ou desconhecido fica nulo', () {
+      final m = avaliacaoParaMap(
+        avaliacao,
+        ubsId: 'u',
+        profissionalId: 'p',
+        profissionalNome: 'Ana Souza',
+      );
+      expect(m.containsKey('profissionalPapel'), isFalse);
+      expect(avaliacaoDeMap('a', m).profissionalPapel, isNull);
+      expect(
+        avaliacaoDeMap('a', {
+          ...m,
+          'profissionalPapel': 'chefe',
+        }).profissionalPapel,
+        isNull,
+      );
     });
     test('avaliacaoDeMap: ida e volta', () {
       final m = avaliacaoParaMap(

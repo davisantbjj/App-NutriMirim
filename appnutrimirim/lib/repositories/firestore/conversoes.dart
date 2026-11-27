@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 
 import '../../data/models.dart';
+import '../sessao_profissional.dart';
 import '../../utils/input_formatters.dart';
 import '../../utils/texto.dart';
 
@@ -240,13 +241,14 @@ Map<String, Object?> avaliacaoCorrigivelParaMap(Avaliacao a) => {
 };
 
 /// Campos de uma avaliação nova (o repositório soma `versao: 0`, `criadoEm` e
-/// `atualizadoEm`). `profissionalId`/`profissionalNome`/`microarea` vêm da
+/// `atualizadoEm`). `profissionalId`/`profissionalNome`/`profissionalPapel`/`microarea` vêm da
 /// sessão, não do modelo. Campos opcionais nulos ficam de fora.
 Map<String, Object?> avaliacaoParaMap(
   Avaliacao a, {
   required String ubsId,
   required String profissionalId,
   required String profissionalNome,
+  PapelProfissional? profissionalPapel,
   String? microarea,
 }) {
   final corrigivel = avaliacaoCorrigivelParaMap(a)
@@ -256,6 +258,7 @@ Map<String, Object?> avaliacaoParaMap(
     'criancaId': a.criancaId,
     'profissionalId': profissionalId,
     'profissionalNome': profissionalNome,
+    if (profissionalPapel != null) 'profissionalPapel': profissionalPapel.name,
     if (microarea != null && microarea.isNotEmpty) 'microarea': microarea,
     ...corrigivel,
     'excluida': false,
@@ -273,6 +276,7 @@ Avaliacao avaliacaoDeMap(String id, Map<String, Object?> d) => Avaliacao(
   criadoEm: timestampParaData(d['criadoEm']),
   profissionalId: _texto(d['profissionalId']),
   profissionalNome: _texto(d['profissionalNome']),
+  profissionalPapel: papelDeTexto(d['profissionalPapel']),
   microarea: _texto(d['microarea']),
   tipoMedida: _texto(d['tipoMedida']),
   indicadores: indicadoresDeMap(d['indicadores']),
@@ -282,3 +286,7 @@ Avaliacao avaliacaoDeMap(String id, Map<String, Object?> d) => Avaliacao(
   retornoSugerido: textoParaData(d['retornoSugerido']),
   excluida: _booleano(d['excluida']) ?? false,
 );
+
+/// Texto -> [PapelProfissional]; nulo se ausente ou desconhecido.
+PapelProfissional? papelDeTexto(Object? valor) =>
+    valor is String ? PapelProfissional.values.asNameMap()[valor] : null;

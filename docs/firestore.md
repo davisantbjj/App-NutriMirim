@@ -128,6 +128,7 @@ Mapa `responsavel` (só estes campos, sem aninhar mais nada):
 | `criancaId` | string | sim | Id em `criancas` (deve existir, da mesma UBS e **ativa**). Imutável. |
 | `profissionalId` | string | sim | `uid` do autor (quem está logado). Imutável. |
 | `profissionalNome` | string | sim | Cópia do `nome` do perfil (as regras conferem), para exibir no histórico. Imutável. |
+| `profissionalPapel` | string (enum) | não | Cópia do `papel` do perfil (as regras conferem), para o histórico mostrar "Ana Souza · ACS". Ausente nas avaliações gravadas antes de 26/11/2026. Imutável. |
 | `microarea` | string | não | Microárea do profissional no momento (RF18). Na criação deve ser ausente/nula ou igual à `microarea` do perfil (o master pode informar qualquer uma). Imutável. |
 | `data` | timestamp | sim | Data/hora da medição (de 2000-01-01 até 1 dia à frente). |
 | `pesoKg` | number | sim | De 0,5 a 60 kg. |
@@ -153,6 +154,7 @@ Mapa `responsavel` (só estes campos, sem aninhar mais nada):
   "criancaId": "AbC123",
   "profissionalId": "uidDaAna",
   "profissionalNome": "Ana Souza",
+  "profissionalPapel": "acs",
   "microarea": "03",
   "data": "<timestamp 2026-11-11 09:30>",
   "pesoKg": 12.5,
@@ -220,7 +222,7 @@ O app **não apaga** nada (`allow delete: if false`). "Excluir" criança é `ati
 | `criancas` | `ubsId` ↑, `ativa` ↑, `nomeBusca` ↑ | Lista de cadastros ativos ordenada por nome. |
 | `criancas` | `ubsId` ↑, `nomeBusca` ↑ | Lista ordenada por nome, com ou sem inativos. |
 
-Consultas de profissional **precisam** incluir `ubsId` com `==` ou `in` usando só UBS da própria lista (o `in` aceita até 30 valores; testado com 2 UBS). Consulta sem `ubsId`, com `!=`, só por `criancaId` ou só por CPF é negada. Para vários `ubsIds`, use `where('ubsId', 'in', ubsIds)`. O master pode consultar sem filtro.
+Consultas de profissional **precisam** incluir `ubsId` com `==` ou `in` usando só UBS da própria lista (o `in` aceita até 30 valores; testado com 2 UBS). **Limite de UBS por profissional:** os repositórios usam `where('ubsId', whereIn: sessao.ubsIds)` (`criancas_firestore.dart` e `avaliacoes_firestore.dart`), que dá erro com mais de 30 ids. As regras já limitam `ubsIds` a 20 quando o perfil é gravado pelo app, mas o perfil criado pelo Console não passa pelas regras: quem cadastra deve respeitar o limite de 20 (ver `cadastro-de-profissionais.md`). Se um dia um profissional precisar de mais de 30 UBS, dividir a consulta em lotes de 30 e juntar os resultados. Consulta sem `ubsId`, com `!=`, só por `criancaId` ou só por CPF é negada. Para vários `ubsIds`, use `where('ubsId', 'in', ubsIds)`. O master pode consultar sem filtro.
 
 ### Busca (RF11)
 
