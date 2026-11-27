@@ -49,7 +49,7 @@ Convenções:
 | `nome` | string (2 a 120) | sim | Nome da UBS. |
 | `endereco` | string (até 200) | não | Endereço. |
 | `municipio` | string (2 a 80) | sim | Município. |
-| `ativa` | bool | sim | `false` impede novos cadastros e avaliações nessa UBS (os dados continuam legíveis). |
+| `ativa` | bool | sim | `false` deixa a UBS só para leitura: impede novos cadastros e avaliações e, para quem não é master, a edição de crianças, a correção e a exclusão de avaliações e o resumo. Os dados continuam legíveis. Gravações feitas offline antes da desativação são recusadas quando o celular sincroniza. |
 | `criadoEm` | timestamp | sim | Servidor; imutável. |
 | `atualizadoEm` | timestamp | sim | Servidor; muda a cada edição. |
 

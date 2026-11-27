@@ -794,3 +794,41 @@ describe('profissional inativo', () => {
     await assertFails(updateDoc(doc(d, 'profissionais/ines'), { microarea: '09' }));
   });
 });
+
+// =====================================================================
+describe('UBS desativada: só leitura, exceto para o master', () => {
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'avaliacoes/deX'),
+        avaliacaoBase('ubsX', 'cX', 'xavier', minutosAtras(5)));
+    });
+  });
+
+  it('o profissional da UBS continua lendo', async () => {
+    await assertSucceeds(getDoc(doc(db('xavier'), 'criancas/cX')));
+    await assertSucceeds(getDoc(doc(db('xavier'), 'avaliacoes/deX')));
+  });
+
+  it('o profissional não edita nem desativa a criança', async () => {
+    await assertFails(editarCrianca('xavier', 'cX'));
+    await assertFails(editarCrianca('xavier', 'cX', { ativa: false }));
+  });
+
+  it('o autor não corrige nem exclui a avaliação, mesmo dentro dos 15 min', async () => {
+    await assertFails(corrigirAval('xavier', 'deX'));
+    await assertFails(corrigirAval('xavier', 'deX',
+      { excluida: true, motivoExclusao: 'Registro duplicado' }, { acao: 'exclusao' }));
+  });
+
+  it('o profissional não regrava o resumo da criança', async () => {
+    await assertFails(updateDoc(doc(db('xavier'), 'criancas/cX'), {
+      ultimaSituacao: 'normal', ultimaAvaliacaoEm: DATA, ultimaAvaliacaoId: 'deX',
+      atualizadoEm: serverTimestamp(),
+    }));
+  });
+
+  it('o master edita a criança e corrige a avaliação', async () => {
+    await assertSucceeds(editarCrianca('mestre', 'cX'));
+    await assertSucceeds(corrigirAval('mestre', 'deX'));
+  });
+});
