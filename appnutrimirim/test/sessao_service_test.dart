@@ -188,6 +188,9 @@ Future<void> _tocarSair(WidgetTester t) async {
     200,
     scrollable: find.byType(Scrollable).first,
   );
+  // Garante o botão inteiro acima da barra inferior antes do toque.
+  await t.ensureVisible(find.text('Sair da conta'));
+  await t.pumpAndSettle();
   await t.tap(find.text('Sair da conta'));
   await t.pumpAndSettle();
 }

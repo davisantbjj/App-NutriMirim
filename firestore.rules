@@ -407,8 +407,9 @@ service cloud.firestore {
             'versaoTabelaOms', 'excluida', 'versao', 'criadoEm', 'atualizadoEm'
           ])
           && d.keys().hasOnly([
-            'ubsId', 'criancaId', 'profissionalId', 'profissionalNome', 'microarea',
-            'data', 'pesoKg', 'alturaCm', 'tipoMedida', 'situacao', 'indicadores',
+            'ubsId', 'criancaId', 'profissionalId', 'profissionalNome',
+            'profissionalPapel', 'microarea', 'data', 'pesoKg', 'alturaCm',
+            'tipoMedida', 'situacao', 'indicadores',
             'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida', 'edema',
             'motivoExclusao', 'versao', 'criadoEm', 'atualizadoEm',
             'alteradoPor', 'alteradoEm', 'motivoAlteracao'
@@ -417,6 +418,8 @@ service cloud.firestore {
           && texto(d.criancaId, 1, 60)
           && d.profissionalId is string
           && texto(d.profissionalNome, 2, 120)
+          && (!('profissionalPapel' in d)
+              || d.profissionalPapel in ['master', 'acs', 'medico', 'nutricionista'])
           && (ausenteOuNulo(d, 'microarea') || texto(d.microarea, 1, 30))
           && d.data is timestamp
           && d.data >= timestamp.date(2000, 1, 1)
@@ -453,14 +456,17 @@ service cloud.firestore {
         && ubsAtiva(request.resource.data.ubsId)
         && avaliacaoValida(request.resource.data)
         && request.resource.data.keys().hasOnly([
-            'ubsId', 'criancaId', 'profissionalId', 'profissionalNome', 'microarea',
-            'data', 'pesoKg', 'alturaCm', 'tipoMedida', 'situacao', 'indicadores',
+            'ubsId', 'criancaId', 'profissionalId', 'profissionalNome',
+            'profissionalPapel', 'microarea', 'data', 'pesoKg', 'alturaCm',
+            'tipoMedida', 'situacao', 'indicadores',
             'desnutricao', 'versaoTabelaOms', 'retornoSugerido', 'excluida', 'edema',
             'versao', 'criadoEm', 'atualizadoEm'
           ])
         && criancaAtivaDaUbs(request.resource.data.criancaId, request.resource.data.ubsId)
         && request.resource.data.profissionalId == request.auth.uid
         && request.resource.data.profissionalNome == perfil().nome
+        && (!('profissionalPapel' in request.resource.data)
+            || request.resource.data.profissionalPapel == perfil().papel)
         && (ausenteOuNulo(request.resource.data, 'microarea')
             || master()
             || request.resource.data.microarea == perfil().get('microarea', null))
@@ -472,7 +478,7 @@ service cloud.firestore {
       // Correção ou exclusão (RF14): só o autor, só até 15 min após
       // criadoEm (o master pode sempre). Exige versão +1, motivo e o log
       // criado no mesmo lote (RNF11). ubsId, criancaId, profissionalId,
-      // profissionalNome, microarea e criadoEm não mudam. Em UBS
+      // profissionalNome, profissionalPapel, microarea e criadoEm não mudam. Em UBS
       // desativada, só o master corrige ou exclui.
       allow update: if daMinhaUbs(resource.data.ubsId)
         && (master() || ubsAtiva(resource.data.ubsId))

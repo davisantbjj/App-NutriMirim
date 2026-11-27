@@ -117,6 +117,7 @@ class AvaliacaoRepositoryFirestore implements AvaliacaoRepository {
         ubsId: crianca['ubsId'] as String,
         profissionalId: sessao.uid,
         profissionalNome: sessao.nome,
+        profissionalPapel: sessao.papel,
         microarea: sessao.microarea,
       ),
       'versao': 0,
@@ -144,6 +145,7 @@ class AvaliacaoRepositoryFirestore implements AvaliacaoRepository {
       criadoEm: _agora(),
       profissionalId: sessao.uid,
       profissionalNome: sessao.nome,
+      profissionalPapel: sessao.papel,
       excluida: false,
     );
   });

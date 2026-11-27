@@ -619,6 +619,28 @@ describe('avaliacoes', () => {
     await assertFails(setDoc(ref('n5'), novaAvaliacao('ubsA', 'cA', 'pedro', { profissionalNome: 'Outra Pessoa' })));
   });
 
+  it('grava o papel do autor só se for o do perfil, e ele não muda', async () => {
+    const ref = (id) => doc(db('pedro'), 'avaliacoes', id);
+    await assertSucceeds(setDoc(ref('p1'), novaAvaliacao('ubsA', 'cA', 'pedro', { profissionalPapel: 'medico' })));
+    await assertFails(setDoc(ref('p2'), novaAvaliacao('ubsA', 'cA', 'pedro', { profissionalPapel: 'master' })));
+    await assertFails(setDoc(ref('p3'), novaAvaliacao('ubsA', 'cA', 'pedro', { profissionalPapel: 'chefe' })));
+    // Sem o campo continua valendo (avaliações antigas e versões antigas do app).
+    await assertSucceeds(setDoc(ref('p4'), novaAvaliacao('ubsA', 'cA', 'pedro')));
+    await assertFails(corrigirAval('pedro', 'recente', { profissionalPapel: 'nutricionista' }));
+    // O master grava o próprio papel.
+    await assertSucceeds(setDoc(doc(db('mestre'), 'avaliacoes/p5'),
+      novaAvaliacao('ubsA', 'cA', 'mestre', { profissionalPapel: 'master' })));
+  });
+
+  it('corrige avaliação que já tem o papel, sem poder trocá-lo', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'avaliacoes/comPapel'),
+        { ...avaliacaoBase('ubsA', 'cA', 'pedro', minutosAtras(5)), profissionalPapel: 'medico' });
+    });
+    await assertFails(corrigirAval('pedro', 'comPapel', { profissionalPapel: 'acs' }));
+    await assertSucceeds(corrigirAval('pedro', 'comPapel'));
+  });
+
   it('não cria para criança inativa nem em UBS inativa', async () => {
     await assertFails(setDoc(doc(db('pedro'), 'avaliacoes/n1'), novaAvaliacao('ubsA', 'cInativa', 'pedro')));
     await assertFails(setDoc(doc(db('xavier'), 'avaliacoes/n2'), novaAvaliacao('ubsX', 'cX', 'xavier')));

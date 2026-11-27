@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fontes.dart';
@@ -65,10 +66,9 @@ Future<_Pilha> _abrirHome(
 }
 
 Future<void> _tocar(WidgetTester t, String rotulo) async {
-  await t.tap(find.descendant(
-    of: find.byType(AppBottomNav),
-    matching: find.text(rotulo),
-  ));
+  await t.tap(
+    find.descendant(of: find.byType(AppBottomNav), matching: find.text(rotulo)),
+  );
   await t.pumpAndSettle();
 }
 
@@ -81,6 +81,47 @@ void _soHome(WidgetTester t, _Pilha pilha) {
 
 void main() {
   setUpAll(carregarFontes);
+
+  for (final escala in [1.0, 1.3, 1.5, 2.0, 3.0]) {
+    testWidgets('barra inferior cabe em 360 dp com fonte ${escala}x', (
+      t,
+    ) async {
+      t.view.physicalSize = const Size(1080, 2340);
+      t.view.devicePixelRatio = 3;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          home: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(360, 780),
+            ).copyWith(textScaler: TextScaler.linear(escala)),
+            child: const Scaffold(
+              bottomNavigationBar: AppBottomNav(current: NavTab.avaliacao),
+            ),
+          ),
+        ),
+      );
+      expect(t.takeException(), isNull);
+      for (final rotulo in ['Início', 'Histórico', 'Avaliação', 'Perfil']) {
+        final texto = find.text(rotulo);
+        expect(texto, findsOneWidget);
+        // Uma linha só: a palavra não pode ser quebrada no meio.
+        final linha = t.renderObject<RenderParagraph>(texto);
+        expect(
+          linha
+              .getBoxesForSelection(
+                TextSelection(baseOffset: 0, extentOffset: rotulo.length),
+              )
+              .map((b) => b.top)
+              .toSet()
+              .length,
+          1,
+          reason: '"$rotulo" quebrou em mais de uma linha com fonte ${escala}x',
+        );
+      }
+    });
+  }
 
   testWidgets('Início após ir ao Histórico deixa apenas uma Home na pilha', (
     t,
@@ -147,10 +188,7 @@ void main() {
   });
 
   testWidgets('Sem Home na pilha, Início recria a Home sozinha', (t) async {
-    final pilha = await _abrirHome(
-      t,
-      rotas: [Routes.splash, Routes.historico],
-    );
+    final pilha = await _abrirHome(t, rotas: [Routes.splash, Routes.historico]);
     await _tocar(t, 'Início');
     _soHome(t, pilha);
   });
