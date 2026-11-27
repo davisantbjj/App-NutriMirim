@@ -97,6 +97,7 @@ As regras não conferem se cada id de `ubsIds` existe em `ubs` (limite de leitur
 | `ativa` | bool | sim | `false` = cadastro desativado (exclusão lógica). |
 | `ultimaSituacao` | string (enum) | não | Situação da última avaliação (resumo para listas). |
 | `ultimaAvaliacaoEm` | timestamp | não | Data da última avaliação (resumo). |
+| `ultimaAvaliacaoId` | string | não | Id da avaliação copiada no resumo; as regras conferem situação e data com ela. |
 | `versao` | int | sim | Contador de edições: 0 na criação, +1 a cada edição de dados. |
 | `criadoPor` | string | sim | `uid` de quem cadastrou; imutável. |
 | `criadoEm` | timestamp | sim | Servidor; imutável. |
@@ -117,7 +118,7 @@ Mapa `responsavel` (só estes campos, sem aninhar mais nada):
 ### Edição, desativação e resumo
 
 - **Edição de dados e desativação (`ativa: false`)**: `versao` sobe +1, exige `motivoAlteracao`, `alteradoPor` (= quem está logado), `alteradoEm` (= servidor) e a criação, **no mesmo lote**, do log `criancas/{id}/alteracoes/{versao}` (ver "Logs de auditoria"). `ubsId`, `criadoPor`, `criadoEm` e `cadastradoEm` não mudam.
-- **Resumo da última avaliação**: o repositório atualiza `ultimaSituacao` e `ultimaAvaliacaoEm` no **mesmo lote** que grava a avaliação. Essa atualização só pode mudar esses 2 campos mais `atualizadoEm`, e **não** exige motivo, versão nem log. Só vale para criança ativa. As regras não conferem se o resumo bate com a avaliação (quem altera o resumo é qualquer profissional da UBS).
+- **Resumo da última avaliação**: o repositório atualiza `ultimaSituacao` e `ultimaAvaliacaoEm` no **mesmo lote** que grava a avaliação. Essa atualização só pode mudar esses 2 campos, `ultimaAvaliacaoId` e `atualizadoEm`, e **não** exige motivo, versão nem log. Só vale para criança ativa. As regras conferem, com `getAfter` (vale no mesmo lote do registro), que `ultimaAvaliacaoId` aponta para uma avaliação desta criança e UBS, não excluída, com a mesma `situacao` e `data`. Enquanto a avaliação do resumo atual continuar valendo, o resumo não pode voltar para uma avaliação mais antiga nem ser apagado; depois de uma correção que mude a data ou de uma exclusão, o repositório refaz o resumo a partir da avaliação mais recente que sobrou. Resumo antigo sem `ultimaAvaliacaoId` não é conferido até ser regravado.
 
 ## `avaliacoes/{id}`
 
@@ -202,7 +203,7 @@ Quem lê: profissionais da UBS do documento principal e o master. `collectionGro
 
 ## Pendências conhecidas das regras (para a task dos repositórios)
 
-- **Resumo da criança forjável:** `ultimaSituacao`/`ultimaAvaliacaoEm` podem ser alterados sem log por qualquer profissional da UBS. Correção futura: gravar também `ultimaAvaliacaoId` na criança e conferir, com `getAfter` da avaliação no mesmo lote, que o resumo bate com ela; ou calcular o resumo numa Cloud Function. Até lá, as telas devem tratar o resumo como dica e não como fonte de verdade (a verdade são as avaliações).
+- ~~**Resumo da criança forjável:**~~ _(Corrigido em 26/11/2026: o resumo grava `ultimaAvaliacaoId` e as regras conferem com a avaliação; ver "Resumo da última avaliação".)_ `ultimaSituacao`/`ultimaAvaliacaoEm` podem ser alterados sem log por qualquer profissional da UBS. Correção futura: gravar também `ultimaAvaliacaoId` na criança e conferir, com `getAfter` da avaliação no mesmo lote, que o resumo bate com ela; ou calcular o resumo numa Cloud Function. Até lá, as telas devem tratar o resumo como dica e não como fonte de verdade (a verdade são as avaliações).
 
 ## Exclusão
 
@@ -247,7 +248,7 @@ A busca por nome parcial é feita **no app**: consulte as crianças da(s) UBS (`
 
 Campos que o modelo **ainda não tem** e o repositório precisa adicionar:
 
-- `Crianca`: `nomeBusca`, `ativa`, `versao`, `criadoPor`, `criadoEm`, `atualizadoEm`, `alteradoPor`, `alteradoEm`, `motivoAlteracao`, `ultimaSituacao`, `ultimaAvaliacaoEm`.
+- `Crianca`: `nomeBusca`, `ativa`, `versao`, `criadoPor`, `criadoEm`, `atualizadoEm`, `alteradoPor`, `alteradoEm`, `motivoAlteracao`, `ultimaSituacao`, `ultimaAvaliacaoEm`, `ultimaAvaliacaoId`.
 - `Avaliacao`: `id`, `ubsId`, `profissionalId`, `profissionalNome`, `microarea`, `tipoMedida`, `indicadores`, `desnutricao`, `versaoTabelaOms`, `retornoSugerido`, `excluida`, `motivoExclusao`, `versao`, `criadoEm`, `atualizadoEm`, `alteradoPor`, `alteradoEm`, `motivoAlteracao`. (`Indicador.nome` do modelo vira a chave `pi`/`ei`/`pe`/`imci`; `Indicador.zScore`/`situacao` vão em `{zScore, situacao}`.)
 
 ## UBS no cadastro de criança (decisão pendente)

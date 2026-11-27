@@ -17,7 +17,8 @@ import 'erros_firestore.dart';
 ///   em `firestore.indexes.json`).
 /// - Correção e exclusão gravam o log `alteracoes/{versao}` no MESMO
 ///   `WriteBatch`, um registro por lote. O resumo da criança
-///   (`ultimaSituacao`/`ultimaAvaliacaoEm`) é gravado no mesmo lote do
+///   (`ultimaSituacao`/`ultimaAvaliacaoEm`/`ultimaAvaliacaoId`; as regras
+///   conferem os dois primeiros com a avaliação apontada) é gravado no mesmo lote do
 ///   registro; após correção/exclusão é refeito em um segundo lote (as regras
 ///   limitam os acessos por lote) e, se falhar, fica como estava (o resumo é só
 ///   uma dica; a verdade são as avaliações).
@@ -133,6 +134,7 @@ class AvaliacaoRepositoryFirestore implements AvaliacaoRepository {
       lote.update(criancaRef, {
         'ultimaSituacao': avaliacao.situacao.name,
         'ultimaAvaliacaoEm': Timestamp.fromDate(avaliacao.data),
+        'ultimaAvaliacaoId': id,
         'atualizadoEm': FieldValue.serverTimestamp(),
       });
     }
@@ -281,6 +283,7 @@ class AvaliacaoRepositoryFirestore implements AvaliacaoRepository {
         'ultimaAvaliacaoEm': ultima == null
             ? FieldValue.delete()
             : Timestamp.fromDate(ultima.data),
+        'ultimaAvaliacaoId': ultima == null ? FieldValue.delete() : ultima.id,
         'atualizadoEm': FieldValue.serverTimestamp(),
       });
     } on FirebaseException {
