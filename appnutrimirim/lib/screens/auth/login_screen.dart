@@ -4,6 +4,7 @@ import '../../app_state.dart';
 import '../../routes.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../widgets/common.dart';
 
 /// TELA 02 — Login.
@@ -70,11 +71,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 32),
                       const Center(child: AppLogo(size: 222, login: true)),
                       const SizedBox(height: 12),
-                      const Text(
+                      Text(
                         'Monitoramento Nutricional Infantil',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: AppColors.textMuted,
+                          color: context.cores.textoSecundario,
                           fontSize: 12,
                         ),
                       ),
@@ -88,11 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Acesse sua conta para acompanhar o crescimento e a saúde das crianças.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: AppColors.textMuted,
+                          color: context.cores.textoSecundario,
                           fontSize: 14,
                         ),
                       ),
@@ -175,21 +176,21 @@ class _LoginScreenState extends State<LoginScreen> {
                             : const Text('Entrar'),
                       ),
                       const SizedBox(height: 28),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             Icons.verified_user_outlined,
                             size: 18,
-                            color: AppColors.textMuted,
+                            color: context.cores.textoSecundario,
                           ),
-                          SizedBox(width: 6),
+                          const SizedBox(width: 6),
                           Flexible(
                             child: Text(
                               'Seus dados são tratados com segurança e privacidade.',
                               style: TextStyle(
-                                color: AppColors.textMuted,
-                                fontSize: 11,
+                                color: context.cores.textoSecundario,
+                                fontSize: 12,
                               ),
                             ),
                           ),

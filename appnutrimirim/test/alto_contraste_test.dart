@@ -1,3 +1,6 @@
+import 'package:appnutrimirim/routes.dart';
+import 'package:appnutrimirim/screens/auth/login_screen.dart';
+import 'package:appnutrimirim/screens/splash_screen.dart';
 import 'package:appnutrimirim/theme/app_palette.dart';
 import 'package:appnutrimirim/theme/app_theme.dart';
 import 'package:appnutrimirim/widgets/bottom_nav.dart';
@@ -66,6 +69,64 @@ void main() {
       }
     },
   );
+
+  testWidgets('Login e Abertura acompanham o alto contraste', (t) async {
+    t.view.physicalSize = const Size(1170, 2532);
+    t.view.devicePixelRatio = 3;
+    addTearDown(t.view.reset);
+    for (final hc in [false, true]) {
+      final esperado = hc
+          ? AppPalette.altoContraste.textoSecundario
+          : AppPalette.normal.textoSecundario;
+      Widget app(Widget tela) => MaterialApp(
+        theme: AppTheme.light(highContrast: hc),
+        home: tela,
+        routes: {Routes.login: (_) => const Scaffold(body: Text('LOGIN'))},
+      );
+
+      await t.pumpWidget(app(const LoginScreen()));
+      await t.pumpAndSettle();
+      for (final texto in [
+        'Monitoramento Nutricional Infantil',
+        'Acesse sua conta para acompanhar o crescimento e a saúde das crianças.',
+        'Seus dados são tratados com segurança e privacidade.',
+      ]) {
+        expect(t.widget<Text>(find.text(texto)).style!.color, esperado);
+      }
+      expect(
+        t.widget<Icon>(find.byIcon(Icons.verified_user_outlined)).color,
+        esperado,
+      );
+      expect(
+        t
+            .widget<Text>(
+              find.text('Seus dados são tratados com segurança e privacidade.'),
+            )
+            .style!
+            .fontSize,
+        greaterThanOrEqualTo(12),
+      );
+
+      await t.pumpWidget(app(const SplashScreen()));
+      expect(
+        t.widget<Text>(find.textContaining('A trena digital')).style!.color,
+        esperado,
+      );
+      expect(
+        t
+            .widget<Text>(find.text('Monitoramento Nutricional Infantil'))
+            .style!
+            .color,
+        esperado.withValues(alpha: .9),
+      );
+      // Deixa a Abertura seguir para o Login (sem sessão) antes do próximo tema.
+      await t.pump(const Duration(seconds: 3));
+      await t.pumpAndSettle();
+      expect(find.text('LOGIN'), findsOneWidget);
+      // Zera a árvore: senão o Navigator mantém a rota LOGIN por cima.
+      await t.pumpWidget(const SizedBox());
+    }
+  });
 
   final paletas = [
     ('normal', AppPalette.normal),

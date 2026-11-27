@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../routes.dart';
 import '../services/auth_service.dart';
-import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
 import '../widgets/common.dart';
 
 /// TELA 01 — Abertura (splash).
@@ -78,15 +78,15 @@ class _SplashScreenState extends State<SplashScreen> {
                   const Spacer(flex: 3),
                   const AppLogo(size: 230, withName: true),
                   const SizedBox(height: 28),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
                       'A trena digital que mede o futuro\ndas crianças brasileiras!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textMuted,
+                        color: context.cores.textoSecundario,
                         height: 1.3,
                       ),
                     ),
@@ -95,7 +95,9 @@ class _SplashScreenState extends State<SplashScreen> {
                   Text(
                     'Monitoramento Nutricional Infantil',
                     style: TextStyle(
-                      color: AppColors.textMuted.withValues(alpha: .9),
+                      color: context.cores.textoSecundario.withValues(
+                        alpha: .9,
+                      ),
                       fontSize: 12,
                     ),
                   ),
