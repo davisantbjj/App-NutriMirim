@@ -212,31 +212,31 @@ Só há um dia de prazo, então esta entrega reúne apenas as tasks pequenas, qu
 
 | Integrante | Front-end | Back-end |
 | --- | --- | --- |
-| Davi | 🟢 Barra inferior sem a Home duplicada | — |
-| Alexandre | 🟢 `pt_BR` + testes da recuperação | — |
-| Larissa | 🟢 Seletor de sexo, `Semantics` e DatePicker | — |
-| Talita | 🟢 Histórico abrindo a criança certa | — |
-| Lorena | 🟢 Perfil + busca sem acentos | — |
+| Davi | Barra inferior sem a Home duplicada (fácil) | — |
+| Alexandre | `pt_BR` + testes da recuperação (fácil) | — |
+| Larissa | Seletor de sexo, `Semantics` e DatePicker (fácil) | — |
+| Talita | Histórico abrindo a criança certa (fácil) | — |
+| Lorena | Perfil + busca sem acentos (fácil) | — |
 
 ### Semana 1 — entrega qua 18/11/2026: base de dados e tasks fáceis do back-end
 
 | Integrante | Front-end | Back-end |
 | --- | --- | --- |
-| Davi | 🔴 `id` e `DateTime` nos modelos + formatadores (**até sex 13/11**, porque bloqueia outros) | 🟢 Coleções e regras do Firestore |
-| Alexandre | — | 🟢 Firebase configurado + `AuthService` |
-| Larissa | — | 🟢 Validadores (CPF e faixas) |
-| Talita | — | 🟢 Classificação, condutas, retorno e alerta |
-| Lorena | — | 🟢 Relatório resumido em texto |
+| Davi | `id` e `DateTime` nos modelos + formatadores (difícil; **até sex 13/11**, porque bloqueia outros) | Coleções e regras do Firestore (fácil) |
+| Alexandre | — | Firebase configurado + `AuthService` (fácil) |
+| Larissa | — | Validadores (CPF e faixas) (fácil) |
+| Talita | — | Classificação, condutas, retorno e alerta (fácil) |
+| Lorena | — | Relatório resumido em texto (fácil) |
 
 ### Semana 2 — entrega qua 25/11/2026: tasks difíceis do front-end e repositórios
 
 | Integrante | Front-end | Back-end |
 | --- | --- | --- |
-| Davi | — | 🔴 Repositórios (**interfaces e versão em memória até qui 19/11**) |
-| Alexandre | 🔴 Alto contraste com `ThemeExtension` | — |
-| Larissa | 🔴 Cadastro salvando e "Editar dados" preenchido | — |
-| Talita | 🔴 Curva com a criança selecionada | 🔴 z-score OMS: tabelas carregadas e primeiro indicador funcionando |
-| Lorena | 🔴 Criança passada pelo fluxo todo | — |
+| Davi | — | Repositórios (difícil; **interfaces e versão em memória até qui 19/11**) |
+| Alexandre | Alto contraste com `ThemeExtension` (difícil) | — |
+| Larissa | Cadastro salvando e "Editar dados" preenchido (difícil) | — |
+| Talita | Curva com a criança selecionada (difícil) | z-score OMS: tabelas carregadas e primeiro indicador funcionando (difícil) |
+| Lorena | Criança passada pelo fluxo todo (difícil) | — |
 
 ### Semana 3 — entrega final ter 01/12/2026: tasks difíceis do back-end e integração
 
@@ -245,10 +245,10 @@ A entrega final é na **terça-feira**, um dia antes do ritmo das quartas.
 | Integrante | Front-end | Back-end |
 | --- | --- | --- |
 | Davi | Integração final, `develop` → `main`, `README.md` e `CHANGELOG.md` | Revisar os PRs dos repositórios e das regras |
-| Alexandre | Cada um troca `AppColors` pelo tema nas próprias telas | 🔴 Sincronização e status pendente |
-| Larissa | (idem) | 🔴 Salvar avaliação + correção em 15 min |
-| Talita | (idem) | 🔴 z-score: os 4 indicadores integrados ao Resultado e à Curva |
-| Lorena | (idem) | 🔴 Histórico, busca e perfil no Firestore |
+| Alexandre | Cada um troca `AppColors` pelo tema nas próprias telas | Sincronização e status pendente (difícil) |
+| Larissa | (idem) | Salvar avaliação + correção em 15 min (difícil) |
+| Talita | (idem) | z-score: os 4 indicadores integrados ao Resultado e à Curva (difícil) |
+| Lorena | (idem) | Histórico, busca e perfil no Firestore (difícil) |
 
 **Até seg 30/11:** todos os PRs na `develop`. **Na terça 01/12:** merge da `develop` na `main` e entrega final do app.
 
