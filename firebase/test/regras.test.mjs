@@ -10,7 +10,7 @@ import {
   assertSucceeds,
 } from '@firebase/rules-unit-testing';
 import {
-  doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch,
+  doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, deleteField, writeBatch,
   collection, collectionGroup, query, where, serverTimestamp, Timestamp,
 } from 'firebase/firestore';
 
@@ -482,11 +482,92 @@ describe('criancas', () => {
 
   it('atualiza só o resumo da última avaliação, sem motivo', async () => {
     const ref = doc(db('pedro'), 'criancas/cA');
-    const resumo = { ultimaSituacao: 'risco', ultimaAvaliacaoEm: Timestamp.now(), atualizadoEm: serverTimestamp() };
+    const resumo = {
+      ultimaSituacao: 'normal', ultimaAvaliacaoEm: DATA, ultimaAvaliacaoId: 'recente',
+      atualizadoEm: serverTimestamp(),
+    };
     await assertSucceeds(updateDoc(ref, resumo));
     await assertFails(updateDoc(ref, { ...resumo, nome: 'Outro Nome' }));
     await assertFails(updateDoc(ref, { ...resumo, ultimaSituacao: 'otima' }));
     await assertFails(updateDoc(doc(db('bia'), 'criancas/cA'), resumo));
+  });
+});
+
+// =====================================================================
+describe('criancas: resumo da última avaliação não é forjável', () => {
+  const ref = (uid = 'pedro', id = 'cA') => doc(db(uid), 'criancas', id);
+  const resumo = (extra = {}) => ({
+    ultimaSituacao: 'normal', ultimaAvaliacaoEm: DATA, ultimaAvaliacaoId: 'recente',
+    atualizadoEm: serverTimestamp(), ...extra,
+  });
+  // Resumo atual de cA apontando para uma avaliação 'risco' mais nova que DATA.
+  const NOVA = Timestamp.fromDate(new Date('2026-03-10T12:00:00Z'));
+  async function semearResumoRisco() {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const d = ctx.firestore();
+      await setDoc(doc(d, 'avaliacoes/grave'),
+        { ...avaliacaoBase('ubsA', 'cA', 'pedro', minutosAtras(30)), data: NOVA, situacao: 'risco' });
+      await updateDoc(doc(d, 'criancas/cA'),
+        { ultimaSituacao: 'risco', ultimaAvaliacaoEm: NOVA, ultimaAvaliacaoId: 'grave' });
+    });
+  }
+
+  it('não grava resumo sem avaliação correspondente', async () => {
+    const { ultimaAvaliacaoId, ...semId } = resumo();
+    await assertFails(updateDoc(ref(), semId));
+    await assertFails(updateDoc(ref(), resumo({ ultimaAvaliacaoId: 'inexistente' })));
+  });
+
+  it('não copia situação nem data diferentes das da avaliação', async () => {
+    await assertFails(updateDoc(ref(), resumo({ ultimaSituacao: 'risco' })));
+    await assertFails(updateDoc(ref(), resumo({ ultimaAvaliacaoEm: Timestamp.now() })));
+  });
+
+  it('não aponta para avaliação de outra criança ou excluída', async () => {
+    await assertFails(updateDoc(ref('carlos', 'cA'), resumo({ ultimaAvaliacaoId: 'deB' })));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'avaliacoes/antiga'), { excluida: true, motivoExclusao: 'Teste' });
+    });
+    await assertFails(updateDoc(ref(), resumo({ ultimaAvaliacaoId: 'antiga' })));
+  });
+
+  it('não volta para uma avaliação mais antiga enquanto a atual vale', async () => {
+    await semearResumoRisco();
+    await assertFails(updateDoc(ref(), resumo()));
+    await assertFails(updateDoc(ref(), {
+      ultimaSituacao: deleteField(), ultimaAvaliacaoEm: deleteField(),
+      ultimaAvaliacaoId: deleteField(), atualizadoEm: serverTimestamp(),
+    }));
+    // Reapontar para a mesma avaliação continua permitido.
+    await assertSucceeds(updateDoc(ref(),
+      resumo({ ultimaSituacao: 'risco', ultimaAvaliacaoEm: NOVA, ultimaAvaliacaoId: 'grave' })));
+  });
+
+  it('volta para a anterior quando a atual é excluída no app', async () => {
+    await semearResumoRisco();
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'avaliacoes/grave'), { excluida: true, motivoExclusao: 'Teste' });
+    });
+    await assertSucceeds(updateDoc(ref(), resumo()));
+  });
+
+  it('apaga o resumo só quando a avaliação apontada não vale mais', async () => {
+    const apagar = {
+      ultimaSituacao: deleteField(), ultimaAvaliacaoEm: deleteField(),
+      ultimaAvaliacaoId: deleteField(), atualizadoEm: serverTimestamp(),
+    };
+    await semearResumoRisco();
+    await assertFails(updateDoc(ref(), apagar));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'avaliacoes/grave'), { excluida: true, motivoExclusao: 'Teste' });
+    });
+    await assertSucceeds(updateDoc(ref(), apagar));
+  });
+
+  it('a edição da criança (com motivo e log) não mexe no resumo', async () => {
+    await semearResumoRisco();
+    await assertFails(editarCrianca('pedro', 'cA', { ultimaSituacao: 'normal' }));
+    await assertSucceeds(editarCrianca('pedro', 'cA'));
   });
 });
 
@@ -508,10 +589,25 @@ describe('avaliacoes', () => {
   it('cria a avaliação e atualiza o resumo da criança no mesmo lote', async () => {
     const d = db('ana');
     const b = writeBatch(d);
-    b.set(doc(d, 'avaliacoes/n1'), novaAvaliacao('ubsA', 'cA', 'ana'));
-    b.update(doc(d, 'criancas/cA'),
-      { ultimaSituacao: 'atencao', ultimaAvaliacaoEm: Timestamp.now(), atualizadoEm: serverTimestamp() });
+    const aval = novaAvaliacao('ubsA', 'cA', 'ana');
+    b.set(doc(d, 'avaliacoes/n1'), aval);
+    b.update(doc(d, 'criancas/cA'), {
+      ultimaSituacao: 'atencao', ultimaAvaliacaoEm: aval.data, ultimaAvaliacaoId: 'n1',
+      atualizadoEm: serverTimestamp(),
+    });
     await assertSucceeds(b.commit());
+  });
+
+  it('não grava no mesmo lote um resumo diferente da avaliação criada', async () => {
+    const d = db('ana');
+    const b = writeBatch(d);
+    const aval = novaAvaliacao('ubsA', 'cA', 'ana');
+    b.set(doc(d, 'avaliacoes/n1'), aval);
+    b.update(doc(d, 'criancas/cA'), {
+      ultimaSituacao: 'normal', ultimaAvaliacaoEm: aval.data, ultimaAvaliacaoId: 'n1',
+      atualizadoEm: serverTimestamp(),
+    });
+    await assertFails(b.commit());
   });
 
   it('não cria com UBS fora da lista, criança alheia, autor ou nome falso', async () => {

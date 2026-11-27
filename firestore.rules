@@ -201,7 +201,7 @@ service cloud.firestore {
           && d.keys().hasOnly([
             'ubsId', 'nome', 'nomeBusca', 'sexo', 'bairro', 'endereco',
             'nascimento', 'cadastradoEm', 'responsavel', 'ativa', 'cpf',
-            'ultimaSituacao', 'ultimaAvaliacaoEm', 'versao',
+            'ultimaSituacao', 'ultimaAvaliacaoEm', 'ultimaAvaliacaoId', 'versao',
             'criadoPor', 'criadoEm', 'atualizadoEm',
             'alteradoPor', 'alteradoEm', 'motivoAlteracao'
           ])
@@ -220,6 +220,7 @@ service cloud.firestore {
           && d.ativa is bool
           && (!('ultimaSituacao' in d) || situacaoValida(d.ultimaSituacao))
           && (!('ultimaAvaliacaoEm' in d) || d.ultimaAvaliacaoEm is timestamp)
+          && (!('ultimaAvaliacaoId' in d) || texto(d.ultimaAvaliacaoId, 1, 60))
           && d.versao is int
           && d.versao >= 0
           && d.criadoPor is string
@@ -229,6 +230,48 @@ service cloud.firestore {
 
       function caminhoLog(versao) {
         return /databases/$(database)/documents/criancas/$(id)/alteracoes/$(string(versao));
+      }
+
+      function caminhoAvaliacao(avId) {
+        return /databases/$(database)/documents/avaliacoes/$(avId);
+      }
+
+      // A avaliação (depois do lote) é desta criança, da mesma UBS, não foi
+      // excluída e tem a situação e a data copiadas para o resumo.
+      function avaliacaoDoResumo(a, d) {
+        return a.criancaId == id
+          && a.ubsId == resource.data.ubsId
+          && a.excluida == false
+          && d.ultimaSituacao == a.situacao
+          && d.ultimaAvaliacaoEm == a.data;
+      }
+
+      // O resumo atual ainda vale: aponta para uma avaliação que, depois do
+      // lote, continua ativa e com a mesma data. Enquanto valer, o resumo não
+      // pode voltar para uma avaliação mais antiga. Resumo sem
+      // ultimaAvaliacaoId (gravado antes desta regra) não é conferido.
+      function resumoAtualVale() {
+        return 'ultimaAvaliacaoId' in resource.data
+          && existsAfter(caminhoAvaliacao(resource.data.ultimaAvaliacaoId))
+          && getAfter(caminhoAvaliacao(resource.data.ultimaAvaliacaoId)).data.excluida == false
+          && getAfter(caminhoAvaliacao(resource.data.ultimaAvaliacaoId)).data.data
+              == resource.data.ultimaAvaliacaoEm;
+      }
+
+      // Resumo novo: ou aponta para uma avaliação real (conferida com
+      // getAfter, para valer no mesmo lote do registro), ou é apagado
+      // (quando não sobra avaliação) se o atual já não vale.
+      function resumoValido(d) {
+        return 'ultimaAvaliacaoId' in d
+          ? texto(d.ultimaAvaliacaoId, 1, 60)
+            && existsAfter(caminhoAvaliacao(d.ultimaAvaliacaoId))
+            && avaliacaoDoResumo(getAfter(caminhoAvaliacao(d.ultimaAvaliacaoId)).data, d)
+            && (!resumoAtualVale()
+                || d.ultimaAvaliacaoId == resource.data.ultimaAvaliacaoId
+                || d.ultimaAvaliacaoEm >= resource.data.ultimaAvaliacaoEm)
+          : !('ultimaSituacao' in d)
+            && !('ultimaAvaliacaoEm' in d)
+            && !resumoAtualVale();
       }
 
       // Lista e leitura: só da própria UBS (a consulta precisa filtrar por
@@ -252,7 +295,8 @@ service cloud.firestore {
       // Edição de dados e desativação: exige versão +1, motivo e o log
       // criado no mesmo lote (RNF11). A UBS e a origem não mudam.
       // Atualização só do resumo (última avaliação): sem motivo nem log,
-      // pode mudar apenas ultimaSituacao, ultimaAvaliacaoEm e atualizadoEm.
+      // pode mudar apenas ultimaSituacao, ultimaAvaliacaoEm, ultimaAvaliacaoId
+      // e atualizadoEm, sempre de acordo com uma avaliação real (resumoValido).
       allow update: if daMinhaUbs(resource.data.ubsId)
         && criancaValida(request.resource.data)
         && (
@@ -270,10 +314,11 @@ service cloud.firestore {
             && existsAfter(caminhoLog(request.resource.data.versao)))
           ||
           (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              'ultimaSituacao', 'ultimaAvaliacaoEm', 'atualizadoEm'
+              'ultimaSituacao', 'ultimaAvaliacaoEm', 'ultimaAvaliacaoId', 'atualizadoEm'
             ])
             && resource.data.ativa == true
-            && request.resource.data.atualizadoEm == request.time)
+            && request.resource.data.atualizadoEm == request.time
+            && resumoValido(request.resource.data))
         );
 
       // Sem exclusão física: use ativa = false (com motivo e log).
