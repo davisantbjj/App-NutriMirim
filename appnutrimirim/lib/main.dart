@@ -37,7 +37,8 @@ class NutriMirimApp extends StatelessWidget {
         supportedLocales: const [Locale('pt', 'BR')],
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         initialRoute: Routes.splash,
-        routes: Routes.table,
+        onGenerateRoute: Routes.gerar,
+        onGenerateInitialRoutes: Routes.gerarIniciais,
       ),
     );
   }
