@@ -50,7 +50,9 @@ service cloud.firestore {
       return ativo() && (perfil().papel == 'master' || ubsId in perfil().ubsIds);
     }
 
-    // A UBS existe e está ativa (não se cadastra em UBS desativada).
+    // A UBS existe e está ativa. UBS desativada fica só para leitura:
+    // não recebe cadastro nem avaliação, e só o master edita ou corrige
+    // registros dela.
     function ubsAtiva(ubsId) {
       return exists(/databases/$(database)/documents/ubs/$(ubsId))
         && get(/databases/$(database)/documents/ubs/$(ubsId)).data.ativa == true;
@@ -297,7 +299,9 @@ service cloud.firestore {
       // Atualização só do resumo (última avaliação): sem motivo nem log,
       // pode mudar apenas ultimaSituacao, ultimaAvaliacaoEm, ultimaAvaliacaoId
       // e atualizadoEm, sempre de acordo com uma avaliação real (resumoValido).
+      // Em UBS desativada, só o master altera.
       allow update: if daMinhaUbs(resource.data.ubsId)
+        && (master() || ubsAtiva(resource.data.ubsId))
         && criancaValida(request.resource.data)
         && (
           (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -468,8 +472,10 @@ service cloud.firestore {
       // Correção ou exclusão (RF14): só o autor, só até 15 min após
       // criadoEm (o master pode sempre). Exige versão +1, motivo e o log
       // criado no mesmo lote (RNF11). ubsId, criancaId, profissionalId,
-      // profissionalNome, microarea e criadoEm não mudam.
+      // profissionalNome, microarea e criadoEm não mudam. Em UBS
+      // desativada, só o master corrige ou exclui.
       allow update: if daMinhaUbs(resource.data.ubsId)
+        && (master() || ubsAtiva(resource.data.ubsId))
         && (master()
             || (resource.data.profissionalId == request.auth.uid
                 && request.time < resource.data.criadoEm + duration.value(15, 'm')))
