@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_state.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/recuperar_email_screen.dart';
 import 'screens/auth/recuperar_enviado_screen.dart';
@@ -53,4 +54,42 @@ class Routes {
     perfil: (_) => const PerfilScreen(),
     listaCriancas: (_) => const ListaCriancasScreen(),
   };
+
+  /// Rotas que abrem sem login. As outras exigem `authService.atual`.
+  static const publicas = {
+    splash,
+    login,
+    recuperarEmail,
+    recuperarEnviado,
+    recuperarNovaSenha,
+  };
+
+  /// `onGenerateRoute` do app: rota protegida sem login abre o Login.
+  /// Rota desconhecida devolve `null` (erro do Navigator, como antes).
+  static Route<dynamic>? gerar(RouteSettings settings) {
+    final nome = settings.name;
+    final builder = table[nome];
+    if (builder == null) return null;
+    if (!publicas.contains(nome) && authService.atual == null) {
+      return MaterialPageRoute(
+        builder: table[login]!,
+        settings: const RouteSettings(name: login),
+      );
+    }
+    return MaterialPageRoute(builder: builder, settings: settings);
+  }
+
+  /// `onGenerateInitialRoutes` do app. Na web, o endereço digitado vira a
+  /// rota inicial: `/inicio`, `/perfil` etc. abertos direto passam pela
+  /// Abertura, que restaura a sessão e liga os repositórios antes de seguir
+  /// para o Início ou o Login. Login e recuperação de senha abrem direto.
+  static List<Route<dynamic>> gerarIniciais(String inicial) {
+    final nome = publicas.contains(inicial) ? inicial : splash;
+    return [
+      MaterialPageRoute(
+        builder: table[nome]!,
+        settings: RouteSettings(name: nome),
+      ),
+    ];
+  }
 }
