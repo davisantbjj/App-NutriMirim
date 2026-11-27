@@ -130,7 +130,7 @@ class _MenuCard extends StatelessWidget {
                     subtitle,
                     style: const TextStyle(
                       color: AppColors.textMutedOnTint,
-                      fontSize: 11,
+                      fontSize: 12,
                     ),
                   ),
                 ],

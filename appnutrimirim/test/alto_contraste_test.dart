@@ -1,5 +1,6 @@
 import 'package:appnutrimirim/routes.dart';
 import 'package:appnutrimirim/screens/auth/login_screen.dart';
+import 'package:appnutrimirim/screens/home_screen.dart';
 import 'package:appnutrimirim/screens/splash_screen.dart';
 import 'package:appnutrimirim/theme/app_palette.dart';
 import 'package:appnutrimirim/theme/app_theme.dart';
@@ -183,6 +184,27 @@ void main() {
     await _abrir(t, const FieldLabel('Peso'), hc: true);
     await t.pumpAndSettle(); // espera a transição do tema
     expect(corDoRotulo(), AppPalette.altoContraste.texto);
+  });
+
+  testWidgets('textos do Início têm no mínimo 12 px', (t) async {
+    t.view.physicalSize = const Size(1170, 2532);
+    t.view.devicePixelRatio = 3;
+    addTearDown(t.view.reset);
+    await t.pumpWidget(
+      MaterialApp(theme: AppTheme.light(), home: const HomeScreen()),
+    );
+    await t.pumpAndSettle();
+    final textos = t.widgetList<RichText>(find.byType(RichText));
+    expect(textos, isNotEmpty);
+    for (final rt in textos) {
+      final tamanho = rt.text.style?.fontSize;
+      if (tamanho == null) continue;
+      expect(
+        tamanho,
+        greaterThanOrEqualTo(12),
+        reason: '"${rt.text.toPlainText()}" com $tamanho px',
+      );
+    }
   });
 
   testWidgets('textos dos widgets compartilhados têm no mínimo 12 px', (
